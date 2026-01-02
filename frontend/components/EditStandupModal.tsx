@@ -4,26 +4,25 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useState } from "react";
+import { StandupResponse } from "@/lib/types";
 
-const CreateStandupSchema = Yup.object().shape({
-    yesterdayText: Yup.string().max(2000, "Max 2000 characters").required("Required"),
-    todayText: Yup.string().max(2000, "Max 2000 characters").required("Required"),
-    blockersText: Yup.string().max(1000, "Max 1000 characters"),
+const EditStandupSchema = Yup.object().shape({
+    yesterdayText: Yup.string().required("Required"),
+    todayText: Yup.string().required("Required"),
+    blockersText: Yup.string(),
 });
 
-interface CreateStandupModalProps {
+interface EditStandupModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    teamId: number;
+    standup: StandupResponse;
 }
 
-// Custom Textarea component
 function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
     return (
         <textarea
@@ -33,25 +32,25 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
     )
 }
 
-export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: CreateStandupModalProps) {
+export function EditStandupModal({ isOpen, onClose, onSuccess, standup }: EditStandupModalProps) {
     const [error, setError] = useState<string | null>(null);
 
     const formik = useFormik({
         initialValues: {
-            yesterdayText: "",
-            todayText: "",
-            blockersText: "",
+            yesterdayText: standup.yesterdayText,
+            todayText: standup.todayText,
+            blockersText: standup.blockersText || "",
         },
-        validationSchema: CreateStandupSchema,
-        onSubmit: async (values, { resetForm }) => {
+        validationSchema: EditStandupSchema,
+        enableReinitialize: true,
+        onSubmit: async (values) => {
             setError(null);
             try {
-                await ApiClient.post(ENDPOINTS.STANDUPS.CREATE(teamId), values);
-                resetForm();
+                await ApiClient.put(ENDPOINTS.STANDUPS.UPDATE(standup.id), values);
                 onSuccess();
                 onClose();
             } catch (err: any) {
-                setError(err.message || "Failed to submit standup");
+                setError(err.message || "Failed to update standup");
             }
         },
     });
@@ -60,17 +59,12 @@ export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: Creat
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Submit Daily Standup"
-            description="Share your progress and blockers with the team"
+            title="Edit Standup"
+            description="Update your standup submission"
         >
             <form onSubmit={formik.handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                    <div className="flex justify-between">
-                        <Label htmlFor="yesterdayText">What did you do yesterday?</Label>
-                        <span className="text-xs text-muted-foreground">
-                            {formik.values.yesterdayText.length}/2000
-                        </span>
-                    </div>
+                    <Label htmlFor="yesterdayText">What did you do yesterday?</Label>
                     <Textarea
                         id="yesterdayText"
                         placeholder="Worked on..."
@@ -85,12 +79,7 @@ export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: Creat
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex justify-between">
-                        <Label htmlFor="todayText">What will you do today?</Label>
-                        <span className="text-xs text-muted-foreground">
-                            {formik.values.todayText.length}/2000
-                        </span>
-                    </div>
+                    <Label htmlFor="todayText">What will you do today?</Label>
                     <Textarea
                         id="todayText"
                         placeholder="Will work on..."
@@ -105,23 +94,13 @@ export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: Creat
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex justify-between">
-                        <Label htmlFor="blockersText">Any blockers?</Label>
-                        <span className="text-xs text-muted-foreground">
-                            {formik.values.blockersText.length}/1000
-                        </span>
-                    </div>
+                    <Label htmlFor="blockersText">Any blockers?</Label>
                     <Textarea
                         id="blockersText"
                         placeholder="None"
                         {...formik.getFieldProps("blockersText")}
                         disabled={formik.isSubmitting}
                     />
-                    {formik.touched.blockersText && formik.errors.blockersText && (
-                        <div className="text-sm text-destructive">
-                            {formik.errors.blockersText}
-                        </div>
-                    )}
                 </div>
 
                 {error && (
@@ -135,7 +114,7 @@ export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: Creat
                         Cancel
                     </Button>
                     <Button type="submit" disabled={formik.isSubmitting}>
-                        {formik.isSubmitting ? "Submit" : "Submit"}
+                        {formik.isSubmitting ? "Saving..." : "Save Changes"}
                     </Button>
                 </div>
             </form>

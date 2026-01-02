@@ -10,4 +10,6 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     List<Team> findByOwnerUserIdAndDeletedFalse(Long ownerUserId);
 
     List<Team> findByDeletedFalse();
+
+    java.util.Optional<Team> findByInviteCodeAndDeletedFalse(String inviteCode);
 }

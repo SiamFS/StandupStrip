@@ -4,6 +4,7 @@ import com.siamcode.backend.dto.request.CreateStandupRequest;
 import com.siamcode.backend.dto.response.StandupResponse;
 import com.siamcode.backend.security.SecurityHelper;
 import com.siamcode.backend.service.StandupService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class StandupController {
     @PostMapping("/teams/{teamId}")
     public ResponseEntity<StandupResponse> createStandup(
             @PathVariable Long teamId,
-            @RequestBody CreateStandupRequest request) {
+            @Valid @RequestBody CreateStandupRequest request) {
         Long currentUserId = securityHelper.getCurrentUserId();
         StandupResponse response = standupService.createStandup(teamId, currentUserId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -34,7 +35,7 @@ public class StandupController {
     @PutMapping("/{standupId}")
     public ResponseEntity<StandupResponse> updateStandup(
             @PathVariable Long standupId,
-            @RequestBody CreateStandupRequest request) {
+            @Valid @RequestBody CreateStandupRequest request) {
         Long currentUserId = securityHelper.getCurrentUserId();
         StandupResponse response = standupService.updateStandup(standupId, currentUserId, request);
         return ResponseEntity.ok(response);

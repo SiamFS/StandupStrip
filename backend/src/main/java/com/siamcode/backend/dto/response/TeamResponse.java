@@ -13,4 +13,5 @@ public class TeamResponse {
     private String name;
     private Long ownerUserId;
     private LocalDateTime createdAt;
+    private String inviteCode;
 }

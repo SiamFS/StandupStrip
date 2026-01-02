@@ -20,7 +20,7 @@ import { useState } from "react";
 const RegisterSchema = Yup.object().shape({
     name: Yup.string().required("Required"),
     email: Yup.string().email("Invalid email").required("Required"),
-    password: Yup.string().min(6, "Password must be at least 6 characters").required("Required"),
+    password: Yup.string().min(8, "Password must be at least 8 characters").required("Required"),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Required'),
@@ -57,7 +57,7 @@ export default function RegisterPage() {
                         Create an Account
                     </CardTitle>
                     <CardDescription className="text-center">
-                        Join StandUpMeet to collaborate with your team
+                        Join StandUpStrip to collaborate with your team
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

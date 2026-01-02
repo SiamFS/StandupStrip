@@ -4,14 +4,16 @@ import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/Card";
-import { Users, Calendar, Plus, Trash2, Settings, FileText } from "lucide-react";
+import { Users, Calendar, Plus, Trash2, Settings, FileText, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import { AddMemberModal } from "@/components/AddMemberModal";
 import { CreateStandupModal } from "@/components/CreateStandupModal";
+import { EditStandupModal } from "@/components/EditStandupModal";
 import { StandupList } from "@/components/StandupList";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Team, UserResponse, StandupResponse, StandupSummaryResponse } from "@/lib/types";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
@@ -39,6 +41,8 @@ export default function TeamDetailsPage() {
 
     const [summary, setSummary] = useState<StandupSummaryResponse | null>(null);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+
+    const [editingStandup, setEditingStandup] = useState<StandupResponse | null>(null);
 
     const fetchTeamData = async () => {
         try {
@@ -121,11 +125,18 @@ export default function TeamDetailsPage() {
     };
 
     const handleRemoveStandup = async (standupId: number) => {
-        if (!confirm("Are you sure you want to delete this standup?")) return;
+        console.log('Delete clicked for standup ID:', standupId);
+        if (!confirm("Are you sure you want to delete this standup?")) {
+            console.log('Delete cancelled by user');
+            return;
+        }
+        console.log('Proceeding with delete...');
         try {
             await ApiClient.delete(ENDPOINTS.STANDUPS.DELETE(standupId));
+            console.log('Delete successful');
             fetchStandups();
         } catch (e) {
+            console.error('Delete failed:', e);
             alert("Failed to delete standup");
         }
     };
@@ -182,15 +193,34 @@ export default function TeamDetailsPage() {
                         <p className="text-muted-foreground">
                             Created on {new Date(team.createdAt).toLocaleDateString()}
                         </p>
+                        {isOwner && team.inviteCode && (
+                            <div className="flex items-center mt-2">
+                                <span className="text-sm text-muted-foreground mr-2">Invite Code:</span>
+                                <code className="bg-muted px-2 py-1 rounded text-sm font-mono mr-2">{team.inviteCode}</code>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(team.inviteCode || "");
+                                        // Ideally show a toast here, but simple alert or changing button text is fine for MVP
+                                    }}
+                                >
+                                    <Copy className="h-3 w-3 mr-1" /> Copy
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={() => setIsCreateStandupOpen(true)}>
                             <Plus className="mr-2 h-4 w-4" /> Submit Standup
                         </Button>
                         {isOwner && (
-                            <Button variant="outline" size="sm">
-                                <Settings className="mr-2 h-4 w-4" /> Settings
-                            </Button>
+                            <Link href={`/teams/${teamId}/settings`}>
+                                <Button variant="outline" size="sm">
+                                    <Settings className="mr-2 h-4 w-4" /> Settings
+                                </Button>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -255,6 +285,27 @@ export default function TeamDetailsPage() {
                                     onChange={(e) => setDate(e.target.value)}
                                     className="w-auto"
                                 />
+                                <div className="flex gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                                        className={date === new Date().toISOString().split('T')[0] ? 'bg-primary/10' : ''}
+                                    >
+                                        Today
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            const yesterday = new Date();
+                                            yesterday.setDate(yesterday.getDate() - 1);
+                                            setDate(yesterday.toISOString().split('T')[0]);
+                                        }}
+                                    >
+                                        Yesterday
+                                    </Button>
+                                </div>
                                 {summary ? (
                                     <Button variant="outline" size="sm" onClick={handleViewSummary}>
                                         <FileText className="mr-2 h-4 w-4" /> View Summary
@@ -269,9 +320,12 @@ export default function TeamDetailsPage() {
                         <CardContent>
                             <StandupList
                                 standups={standups}
+                                members={members}
                                 loading={standupsLoading}
                                 currentUserId={user?.id}
                                 onDelete={handleRemoveStandup}
+                                onEdit={setEditingStandup}
+                                todayDate={date}
                             />
                         </CardContent>
                     </Card>
@@ -291,6 +345,15 @@ export default function TeamDetailsPage() {
                 onSuccess={() => { fetchStandups(); fetchSummary(); }}
                 teamId={teamId}
             />
+
+            {editingStandup && (
+                <EditStandupModal
+                    isOpen={!!editingStandup}
+                    onClose={() => setEditingStandup(null)}
+                    onSuccess={() => { fetchStandups(); fetchSummary(); }}
+                    standup={editingStandup}
+                />
+            )}
 
             <Modal
                 isOpen={isSummaryOpen}
