@@ -18,6 +18,8 @@ export const ENDPOINTS = {
         ADD_MEMBER: (teamId: number) => `/api/teams/${teamId}/members`,
         GET_MEMBERS: (teamId: number) => `/api/teams/${teamId}/members`,
         REMOVE_MEMBER: (teamId: number, userId: number) => `/api/teams/${teamId}/members/${userId}`,
+        GET_BY_INVITE_CODE: (code: string) => `/api/teams/join/${code}`,
+        JOIN_BY_CODE: (code: string) => `/api/teams/join/${code}`,
     },
     STANDUPS: {
         CREATE: (teamId: number) => `/api/standups/teams/${teamId}`,

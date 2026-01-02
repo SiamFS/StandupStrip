@@ -76,9 +76,16 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Manage your teams and standups</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Create Team
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/join">
+            <Button variant="outline">
+              <Users className="mr-2 h-4 w-4" /> Join Team
+            </Button>
+          </Link>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Create Team
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -92,9 +99,16 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-4 max-w-sm">
             Get started by creating your first team to track daily standups and improved collaboration.
           </p>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Create Team
-          </Button>
+          <div className="flex gap-4">
+            <Link href="/join">
+              <Button variant="outline">
+                <Users className="mr-2 h-4 w-4" /> Join Team
+              </Button>
+            </Link>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Create Team
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
     LayoutDashboard,
     Users,
+    User,
     LogOut,
     Menu,
     X,
@@ -29,7 +30,7 @@ export default function Layout({ children }: LayoutProps) {
     const navItems = [
         { name: "Dashboard", href: "/", icon: LayoutDashboard },
         { name: "Teams", href: "/teams", icon: Users },
-        // { name: "Summaries", href: "/summaries", icon: FileText },
+        { name: "Profile", href: "/profile", icon: User },
     ];
 
     const [mounted, setMounted] = useState(false);
@@ -61,7 +62,7 @@ export default function Layout({ children }: LayoutProps) {
             >
                 <div className="h-16 flex items-center px-6 border-b">
                     <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                        StandUpMeet
+                        StandUpStrip
                     </span>
                     <button
                         onClick={() => setIsSidebarOpen(false)}
@@ -121,7 +122,7 @@ export default function Layout({ children }: LayoutProps) {
                     >
                         <Menu className="h-6 w-6" />
                     </button>
-                    <span className="ml-4 font-semibold">StandUpMeet</span>
+                    <span className="ml-4 font-semibold">StandUpStrip</span>
                 </header>
 
                 <div className="flex-1 p-6 lg:p-10 overflow-auto">

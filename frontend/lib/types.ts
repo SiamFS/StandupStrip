@@ -10,6 +10,7 @@ export interface Team {
     description?: string;
     ownerUserId: number;
     createdAt: string;
+    inviteCode?: string;
 }
 
 export interface StandupResponse {
