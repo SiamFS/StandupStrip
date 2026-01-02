@@ -1,0 +1,9 @@
+{
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\jdk21",
+      "default": true
+    }
+  ]
+}
