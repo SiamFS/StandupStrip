@@ -1,13 +1,61 @@
 package com.siamcode.backend;
 
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestController
 public class BackendController {
-    @RequestMapping("/hello")
-    public String hello() {
-        return "Hello, World!";
+
+    @Value("${spring.application.name:StandUpStrip API}")
+    private String appName;
+
+    @GetMapping("/")
+    public Map<String, Object> welcome() {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("application", "StandUpStrip API");
+        response.put("version", "1.0.0");
+        response.put("status", "running");
+        response.put("message", "Welcome to the StandUpStrip Backend API!");
+        response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        Map<String, String> endpoints = new LinkedHashMap<>();
+        endpoints.put("auth", "/api/auth/login, /api/auth/register");
+        endpoints.put("users", "/api/users");
+        endpoints.put("teams", "/api/teams");
+        endpoints.put("standups", "/api/standups");
+        endpoints.put("summaries", "/api/standup-summaries");
+        endpoints.put("health", "/hello");
+        response.put("endpoints", endpoints);
+
+        Map<String, String> documentation = new LinkedHashMap<>();
+        documentation.put("postman", "See StandUpStrip_Postman_Collection.json");
+        documentation.put("readme", "See README.md for setup instructions");
+        response.put("documentation", documentation);
+
+        return response;
     }
 
+    @GetMapping("/hello")
+    public Map<String, String> hello() {
+        Map<String, String> response = new LinkedHashMap<>();
+        response.put("status", "healthy");
+        response.put("message", "Hello from StandUpStrip API! 👋");
+        response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        return response;
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        Map<String, String> response = new LinkedHashMap<>();
+        response.put("status", "UP");
+        response.put("service", "standupmeet-backend");
+        response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        return response;
+    }
 }
