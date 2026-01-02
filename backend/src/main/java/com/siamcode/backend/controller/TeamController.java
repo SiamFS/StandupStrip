@@ -82,4 +82,17 @@ public class TeamController {
         teamService.removeMember(teamId, userId, currentUserId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/join/{code}")
+    public ResponseEntity<TeamResponse> getTeamByInviteCode(@PathVariable String code) {
+        TeamResponse team = teamService.getTeamByInviteCode(code);
+        return ResponseEntity.ok(team);
+    }
+
+    @PostMapping("/join/{code}")
+    public ResponseEntity<Void> joinTeamByCode(@PathVariable String code) {
+        Long currentUserId = securityHelper.getCurrentUserId();
+        teamService.joinTeamByCode(code, currentUserId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }

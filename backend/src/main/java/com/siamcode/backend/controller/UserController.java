@@ -1,5 +1,6 @@
 package com.siamcode.backend.controller;
 
+import com.siamcode.backend.dto.request.UpdateUserRequest;
 import com.siamcode.backend.dto.response.UserResponse;
 import com.siamcode.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,13 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        // TODO: Implement get user by ID
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
-            @RequestParam String name) {
-        // TODO: Implement update user
-        return ResponseEntity.ok(userService.updateUser(id, name));
+            @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request.getName()));
     }
 }

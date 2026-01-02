@@ -181,4 +181,27 @@ public class TeamService {
                 .map(entityMapper::toUserResponse)
                 .collect(Collectors.toList());
     }
+
+    public TeamResponse getTeamByInviteCode(String inviteCode) {
+        Team team = teamRepository.findByInviteCodeAndDeletedFalse(inviteCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid invite code"));
+        return entityMapper.toTeamResponse(team);
+    }
+
+    @Transactional
+    public void joinTeamByCode(String inviteCode, Long userId) {
+        Team team = teamRepository.findByInviteCodeAndDeletedFalse(inviteCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid invite code"));
+
+        // Check if already a member
+        if (teamMemberRepository.findByTeamIdAndUserId(team.getId(), userId).isPresent()) {
+            throw new BadRequestException("You are already a member of this team");
+        }
+
+        TeamMember member = new TeamMember();
+        member.setTeamId(team.getId());
+        member.setUserId(userId);
+        member.setRole("MEMBER");
+        teamMemberRepository.save(member);
+    }
 }

@@ -28,8 +28,14 @@ public class Team {
 
     private boolean deleted = false;
 
+    @Column(unique = true)
+    private String inviteCode;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (inviteCode == null) {
+            inviteCode = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        }
     }
 }
