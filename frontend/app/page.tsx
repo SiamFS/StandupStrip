@@ -4,18 +4,36 @@ import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import { CreateTeamModal } from "@/components/CreateTeamModal";
+import { cn } from "@/lib/utils";
 
 interface Team {
   id: number;
   name: string;
   description?: string;
-  members: any[];
+  members: unknown[];
+}
+
+function TeamCardSkeleton() {
+  return (
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-4 rounded" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-2/3 mb-4" />
+        <Skeleton className="h-4 w-20" />
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Dashboard() {
@@ -71,35 +89,13 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage your teams and standups</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/join">
-            <Button variant="outline">
-              <Users className="mr-2 h-4 w-4" /> Join Team
-            </Button>
-          </Link>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Create Team
-          </Button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-10">Loading teams...</div>
-      ) : teams.length === 0 ? (
-        <div className="flex flex-col items-center justify-center border rounded-lg border-dashed p-12 text-center">
-          <div className="bg-primary/10 p-4 rounded-full mb-4">
-            <Users className="h-8 w-8 text-primary" />
+      <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Manage your teams and standups</p>
           </div>
-          <h3 className="text-lg font-semibold">No teams yet</h3>
-          <p className="text-muted-foreground mb-4 max-w-sm">
-            Get started by creating your first team to track daily standups and improved collaboration.
-          </p>
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <Link href="/join">
               <Button variant="outline">
                 <Users className="mr-2 h-4 w-4" /> Join Team
@@ -110,34 +106,67 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {teams.map((team) => (
-            <Link key={team.id} href={`/teams/${team.id}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xl font-bold">{team.name}</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="line-clamp-2 mb-4">
-                    {team.description || "No description provided"}
-                  </CardDescription>
-                  <div className="flex items-center text-sm text-primary font-medium">
-                    View Team <ArrowRight className="ml-1 h-3 w-3" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
 
-      <CreateTeamModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={fetchTeams}
-      />
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <TeamCardSkeleton />
+            <TeamCardSkeleton />
+            <TeamCardSkeleton />
+          </div>
+        ) : teams.length === 0 ? (
+          <div className="flex flex-col items-center justify-center border rounded-lg border-dashed p-12 text-center animate-in fade-in-0 zoom-in-95 duration-300">
+            <div className="bg-primary/10 p-4 rounded-full mb-4">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold">No teams yet</h3>
+            <p className="text-muted-foreground mb-4 max-w-sm">
+              Get started by creating your first team to track daily standups and improved collaboration.
+            </p>
+            <div className="flex gap-4">
+              <Link href="/join">
+                <Button variant="outline">
+                  <Users className="mr-2 h-4 w-4" /> Join Team
+                </Button>
+              </Link>
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Create Team
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {teams.map((team, index) => (
+              <Link key={team.id} href={`/teams/${team.id}`}>
+                <Card
+                  className={cn(
+                    "hover:shadow-lg cursor-pointer h-full group animate-in fade-in-0 slide-in-from-bottom-4"
+                  )}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xl font-bold">{team.name}</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="line-clamp-2 mb-4">
+                      {team.description || "No description provided"}
+                    </CardDescription>
+                    <div className="flex items-center text-sm text-primary font-medium group-hover:translate-x-1 transition-transform duration-200">
+                      View Team <ArrowRight className="ml-1 h-3 w-3" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <CreateTeamModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={fetchTeams}
+        />
+      </div>
     </Layout>
   );
 }
