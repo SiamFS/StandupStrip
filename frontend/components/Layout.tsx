@@ -40,7 +40,7 @@ export default function Layout({ children }: LayoutProps) {
     const [sheetOpen, setSheetOpen] = useState(false);
 
     const navItems = [
-        { name: "Dashboard", href: "/", icon: LayoutDashboard },
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { name: "Teams", href: "/teams", icon: Users },
         { name: "Profile", href: "/profile", icon: User },
     ];
@@ -79,7 +79,8 @@ export default function Layout({ children }: LayoutProps) {
                 <TooltipProvider delayDuration={0}>
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = pathname === item.href;
+                        const isActive = pathname === item.href ||
+                            (item.href === "/dashboard" && pathname === "/");
 
                         return (
                             <Tooltip key={item.href}>

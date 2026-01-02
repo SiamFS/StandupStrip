@@ -18,6 +18,7 @@ interface AuthContextType {
     login: (data: any) => Promise<void>;
     register: (data: any) => Promise<void>;
     logout: () => void;
+    updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -114,8 +115,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push("/login");
     };
 
+    const updateUser = (userData: Partial<User>) => {
+        if (!user) return;
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

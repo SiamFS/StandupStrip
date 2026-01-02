@@ -13,7 +13,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Calendar, Plus, Trash2, Settings, FileText, Copy, Check } from "lucide-react";
+import { Users, Calendar, Plus, Trash2, Settings, FileText, Copy, Check, AlertCircle } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +29,8 @@ import { Team, UserResponse, StandupResponse, StandupSummaryResponse } from "@/l
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { StatsCards } from "@/components/StatsCards";
+import { getLocalDateFormat } from "@/lib/date";
 
 export default function TeamDetailsPage() {
     const { user, isLoading: authLoading } = useAuth();
@@ -40,7 +44,7 @@ export default function TeamDetailsPage() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(getLocalDateFormat());
     }, []);
 
     const [loading, setLoading] = useState(true);
@@ -51,6 +55,7 @@ export default function TeamDetailsPage() {
     const [isCreateStandupOpen, setIsCreateStandupOpen] = useState(false);
 
     const [summary, setSummary] = useState<StandupSummaryResponse | null>(null);
+    const [summaryError, setSummaryError] = useState<string | null>(null);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
     const [editingStandup, setEditingStandup] = useState<StandupResponse | null>(null);
@@ -97,14 +102,17 @@ export default function TeamDetailsPage() {
 
     const handleGenerateSummary = async () => {
         setSummaryLoading(true);
+        setSummaryError(null);
         try {
             const data = await ApiClient.post<StandupSummaryResponse>(ENDPOINTS.SUMMARIES.GENERATE(teamId, date), {});
             setSummary(data);
+            setSummaryError(null);
             setIsSummaryOpen(true);
             toast.success("Summary generated successfully!");
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to generate summary";
-            toast.error(message);
+            setSummaryError(message);
+            setIsSummaryOpen(true);
         } finally {
             setSummaryLoading(false);
         }
@@ -249,6 +257,15 @@ export default function TeamDetailsPage() {
                     </div>
                 </div>
 
+                {/* Analytics Stats Cards */}
+                <StatsCards
+                    totalMembers={members.length}
+                    submittedCount={standups.length}
+                    pendingCount={members.length - standups.length}
+                    hasBlockers={standups.some(s => s.blockersText && s.blockersText.trim().length > 0)}
+                    date={date}
+                />
+
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {/* Members Card */}
                     <Card className="col-span-1 md:col-span-2 lg:col-span-1 h-fit hover:shadow-lg">
@@ -323,10 +340,10 @@ export default function TeamDetailsPage() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                                        onClick={() => setDate(getLocalDateFormat())}
                                         className={cn(
                                             "transition-all duration-200",
-                                            date === new Date().toISOString().split('T')[0] && 'bg-primary/10'
+                                            date === getLocalDateFormat() && 'bg-primary/10'
                                         )}
                                     >
                                         Today
@@ -337,7 +354,7 @@ export default function TeamDetailsPage() {
                                         onClick={() => {
                                             const yesterday = new Date();
                                             yesterday.setDate(yesterday.getDate() - 1);
-                                            setDate(yesterday.toISOString().split('T')[0]);
+                                            setDate(getLocalDateFormat(yesterday));
                                         }}
                                     >
                                         Yesterday
@@ -392,18 +409,45 @@ export default function TeamDetailsPage() {
                 />
             )}
 
-            <Dialog open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+            <Dialog open={isSummaryOpen} onOpenChange={(open) => { setIsSummaryOpen(open); if (!open) setSummaryError(null); }}>
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>Summary for {new Date(date).toLocaleDateString()}</DialogTitle>
+                        <DialogTitle>
+                            {summaryError ? "Summary Generation Failed" : `Summary for ${new Date(date).toLocaleDateString()}`}
+                        </DialogTitle>
                         <DialogDescription>
-                            {summary?.generatedByAi ? "AI Generated Summary" : "Team Summary"}
+                            {summaryError ? "An error occurred while generating the AI summary" : (summary?.generatedByAi ? "AI Generated Summary" : "Team Summary")}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed p-4 bg-muted/50 rounded-md max-h-[60vh] overflow-y-auto">
-                        {summary ? summary.summaryText : "No summary available."}
-                    </div>
-                    <div className="flex justify-end">
+                    {summaryError ? (
+                        <div className="flex flex-col items-center gap-4 p-6">
+                            <div className="rounded-full bg-destructive/10 p-3">
+                                <AlertCircle className="h-8 w-8 text-destructive" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-sm text-destructive font-medium">Error</p>
+                                <p className="text-sm text-muted-foreground">{summaryError}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-h-[60vh] overflow-y-auto p-2">
+                            {summary ? (
+                                <article className="prose prose-sm dark:prose-invert max-w-none">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {summary.summaryText}
+                                    </ReactMarkdown>
+                                </article>
+                            ) : (
+                                <p className="text-sm text-muted-foreground p-4">No summary available.</p>
+                            )}
+                        </div>
+                    )}
+                    <div className="flex justify-end gap-2">
+                        {summaryError && (
+                            <Button variant="outline" onClick={() => { setSummaryError(null); handleGenerateSummary(); }}>
+                                Retry
+                            </Button>
+                        )}
                         <Button onClick={() => setIsSummaryOpen(false)}>Close</Button>
                     </div>
                 </DialogContent>

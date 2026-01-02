@@ -1,172 +1,259 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Layout from "@/components/Layout";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Users, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import ApiClient from "@/lib/api";
-import { ENDPOINTS } from "@/lib/endpoints";
+import {
+  Users,
+  Calendar,
+  Sparkles,
+  Clock,
+  BarChart3,
+  Shield,
+  ArrowRight,
+  CheckCircle2,
+  Zap,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { CreateTeamModal } from "@/components/CreateTeamModal";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-interface Team {
-  id: number;
-  name: string;
-  description?: string;
-  members: unknown[];
-}
+const features = [
+  {
+    icon: Calendar,
+    title: "Daily Standup Capture",
+    description: "Simple three-field format: Yesterday, Today, Blockers. No complexity, just clarity.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI-Powered Summaries",
+    description: "One click to generate intelligent daily summaries with key themes and blockers highlighted.",
+  },
+  {
+    icon: Users,
+    title: "Team Management",
+    description: "Create teams, invite members with codes, and track everyone's updates in one place.",
+  },
+  {
+    icon: Clock,
+    title: "Async-First Design",
+    description: "No more scheduling conflicts. Submit updates when it works for you.",
+  },
+  {
+    icon: BarChart3,
+    title: "Participation Analytics",
+    description: "Track team engagement, identify patterns, and celebrate consistency.",
+  },
+  {
+    icon: Shield,
+    title: "Simple & Lightweight",
+    description: "No Jira complexity. No enterprise setup. Just standups that work.",
+  },
+];
 
-function TeamCardSkeleton() {
-  return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-4 w-4 rounded" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-4 w-full mb-2" />
-        <Skeleton className="h-4 w-2/3 mb-4" />
-        <Skeleton className="h-4 w-20" />
-      </CardContent>
-    </Card>
-  );
-}
+const benefits = [
+  "Replace scattered Slack updates",
+  "Skip the 15-min sync meetings",
+  "AI summaries for managers",
+  "Works across time zones",
+];
 
-export default function Dashboard() {
-  const { user, isLoading: authLoading } = useAuth();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  const fetchTeams = async () => {
-    try {
-      const data = await ApiClient.get<Team[]>(ENDPOINTS.TEAMS.LIST);
-      setTeams(data);
-    } catch (error) {
-      // Failed to fetch teams
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function LandingPage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      fetchTeams();
-    } else if (!authLoading) {
-      setLoading(false);
+    if (!isLoading && user) {
+      router.push("/dashboard");
     }
-  }, [user, authLoading]);
+  }, [user, isLoading, router]);
 
-  // Show loading spinner during auth check
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <p className="text-muted-foreground">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+  if (user) {
+    return null;
   }
 
   return (
-    <Layout>
-      <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Manage your teams and standups</p>
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Zap className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold">StandUpStrip</span>
           </div>
-          <div className="flex gap-2">
-            <Link href="/join">
-              <Button variant="outline">
-                <Users className="mr-2 h-4 w-4" /> Join Team
-              </Button>
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost">Sign In</Button>
             </Link>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Team
-            </Button>
+            <Link href="/register">
+              <Button>Get Started</Button>
+            </Link>
           </div>
         </div>
+      </nav>
 
-        {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <TeamCardSkeleton />
-            <TeamCardSkeleton />
-            <TeamCardSkeleton />
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20 lg:py-32">
+        <div className="max-w-4xl mx-auto text-center animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Sparkles className="h-4 w-4" />
+            <span>Lightweight Async Standups + AI Summaries</span>
           </div>
-        ) : teams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center border rounded-lg border-dashed p-12 text-center animate-in fade-in-0 zoom-in-95 duration-300">
-            <div className="bg-primary/10 p-4 rounded-full mb-4">
-              <Users className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold">No teams yet</h3>
-            <p className="text-muted-foreground mb-4 max-w-sm">
-              Get started by creating your first team to track daily standups and improved collaboration.
-            </p>
-            <div className="flex gap-4">
-              <Link href="/join">
-                <Button variant="outline">
-                  <Users className="mr-2 h-4 w-4" /> Join Team
-                </Button>
-              </Link>
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Create Team
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+            Stop drowning in{" "}
+            <span className="text-primary">fragmented updates</span>
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            StandUpStrip gives your team a clean, async standup workflow without the overhead of Jira or Linear.
+            Get AI-powered daily summaries in one click.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/register">
+              <Button size="lg" className="w-full sm:w-auto text-base px-8">
+                Start Free <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </div>
+            </Link>
+            <Link href="/login">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8">
+                Sign In
+              </Button>
+            </Link>
           </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {teams.map((team, index) => (
-              <Link key={team.id} href={`/teams/${team.id}`}>
-                <Card
-                  className={cn(
-                    "hover:shadow-lg cursor-pointer h-full group animate-in fade-in-0 slide-in-from-bottom-4"
-                  )}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xl font-bold">{team.name}</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="line-clamp-2 mb-4">
-                      {team.description || "No description provided"}
-                    </CardDescription>
-                    <div className="flex items-center text-sm text-primary font-medium group-hover:translate-x-1 transition-transform duration-200">
-                      View Team <ArrowRight className="ml-1 h-3 w-3" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+
+          {/* Quick benefits */}
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-10 text-sm text-muted-foreground">
+            {benefits.map((benefit, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                <span>{benefit}</span>
+              </div>
             ))}
           </div>
-        )}
+        </div>
+      </section>
 
-        <CreateTeamModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={fetchTeams}
-        />
-      </div>
-    </Layout>
+      {/* Features Section */}
+      <section className="container mx-auto px-4 py-20 border-t">
+        <div className="text-center mb-16 animate-in fade-in-0 duration-500">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Everything you need, nothing you don&apos;t
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Designed for small teams who want clarity without complexity.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <Card
+                key={feature.title}
+                className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-4"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardHeader>
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="container mx-auto px-4 py-20 border-t">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Simple 3-step workflow
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            From signup to AI summary in minutes
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          {[
+            {
+              step: "1",
+              title: "Create your team",
+              desc: "Set up a workspace and invite your teammates with a simple code.",
+            },
+            {
+              step: "2",
+              title: "Submit standups",
+              desc: "Each member fills in Yesterday, Today, and Blockers daily.",
+            },
+            {
+              step: "3",
+              title: "Get AI summaries",
+              desc: "One click generates a smart summary with themes and blockers.",
+            },
+          ].map((item, index) => (
+            <div
+              key={item.step}
+              className="text-center animate-in fade-in-0 slide-in-from-bottom-4"
+              style={{ animationDelay: `${index * 150}ms` }}
+            >
+              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                {item.step}
+              </div>
+              <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+              <p className="text-muted-foreground">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container mx-auto px-4 py-20">
+        <Card className="max-w-3xl mx-auto bg-primary text-primary-foreground">
+          <CardContent className="p-10 text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Ready to streamline your standups?
+            </h2>
+            <p className="text-lg opacity-90 mb-8">
+              Join teams who&apos;ve replaced chaotic Slack threads with clean daily updates.
+            </p>
+            <Link href="/register">
+              <Button size="lg" variant="secondary" className="text-base px-8">
+                Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t py-8">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+              <Zap className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-semibold text-foreground">StandUpStrip</span>
+          </div>
+          <p>Lightweight async standups for modern teams.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

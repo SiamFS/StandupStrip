@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
-    const { user, isLoading: authLoading } = useAuth();
+    const { user, isLoading: authLoading, updateUser } = useAuth();
     const [name, setName] = useState("");
     const [saving, setSaving] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -37,6 +37,7 @@ export default function ProfilePage() {
         setSaving(true);
         try {
             await ApiClient.put(ENDPOINTS.USERS.UPDATE(user.id), { name: name.trim() });
+            updateUser({ name: name.trim() });
             toast.success("Profile updated successfully!");
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Failed to update profile";

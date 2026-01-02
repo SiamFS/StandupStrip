@@ -41,6 +41,8 @@ function StandupSkeleton() {
     );
 }
 
+import { getLocalDateFormat } from "@/lib/date";
+
 export function StandupList({ standups, members, loading, currentUserId, onDelete, onEdit, todayDate }: StandupListProps) {
     if (loading) {
         return (
@@ -53,13 +55,37 @@ export function StandupList({ standups, members, loading, currentUserId, onDelet
 
     if (standups.length === 0 && (!members || members.length === 0)) {
         return (
-            <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg animate-in fade-in-0 duration-300">
-                <p>No standups for this date.</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl animate-in fade-in-0 duration-300 bg-muted/20">
+                {/* Empty state illustration */}
+                <svg
+                    className="w-32 h-32 mb-6"
+                    viewBox="0 0 120 120"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    {/* Clipboard base */}
+                    <rect x="25" y="20" width="70" height="85" rx="6" className="fill-muted stroke-muted-foreground/30" strokeWidth="2" />
+                    <rect x="40" y="12" width="40" height="16" rx="4" className="fill-background stroke-primary/50" strokeWidth="2" />
+                    <circle cx="60" cy="20" r="4" className="fill-primary/30" />
+
+                    {/* Empty lines */}
+                    <rect x="35" y="42" width="50" height="6" rx="3" className="fill-muted-foreground/20" />
+                    <rect x="35" y="56" width="40" height="6" rx="3" className="fill-muted-foreground/15" />
+                    <rect x="35" y="70" width="45" height="6" rx="3" className="fill-muted-foreground/10" />
+
+                    {/* Question mark */}
+                    <circle cx="90" cy="85" r="18" className="fill-primary/10 stroke-primary/30" strokeWidth="2" />
+                    <text x="90" y="92" textAnchor="middle" className="fill-primary text-lg font-bold">?</text>
+                </svg>
+                <h3 className="text-lg font-semibold mb-2">No standups for this date</h3>
+                <p className="text-muted-foreground text-sm max-w-xs">
+                    Check back later or select a different date to view team updates.
+                </p>
             </div>
         )
     }
 
-    const isToday = todayDate === new Date().toISOString().split('T')[0];
+    const isToday = todayDate === getLocalDateFormat();
 
     // Identify pending members
     const pendingMembers = members ? members.filter(member =>
