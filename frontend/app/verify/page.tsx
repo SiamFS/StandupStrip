@@ -38,8 +38,8 @@ function VerifyContent() {
     }, [token]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-            <Card className="max-w-md w-full border-none shadow-2xl bg-card/50 backdrop-blur-sm">
+        <div className="min-h-screen flex items-center justify-center bg-background md:bg-muted/40 p-0 md:p-4">
+            <Card className="w-full h-full min-h-screen md:min-h-0 md:h-auto md:max-w-md border-none md:border rounded-none md:rounded-xl md:shadow-2xl bg-background md:bg-card/50 md:backdrop-blur-sm flex flex-col justify-center">
                 <CardHeader className="text-center">
                     <div className="mx-auto w-12 h-12 mb-4 flex items-center justify-center rounded-full bg-primary/10">
                         <span className="text-primary text-2xl font-bold">S</span>

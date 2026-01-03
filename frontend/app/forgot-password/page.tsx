@@ -38,12 +38,12 @@ export default function ForgotPasswordPage() {
     });
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-            {/* Decorative Background Elements */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
+        <div className="min-h-screen flex items-center justify-center bg-background md:bg-muted/40 p-0 md:p-4 relative overflow-hidden">
+            {/* Decorative Background Elements - only on desktop */}
+            <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
+            <div className="hidden md:block absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
 
-            <Card className="max-w-md w-full border-none shadow-2xl bg-card/80 backdrop-blur-md relative z-10 transition-all duration-300">
+            <Card className="w-full h-full min-h-screen md:min-h-0 md:h-auto md:max-w-md border-none md:border rounded-none md:rounded-xl md:shadow-2xl bg-background md:bg-card/80 md:backdrop-blur-md relative z-10 flex flex-col justify-center transition-all duration-300">
                 <CardHeader className="space-y-1">
                     <Button variant="ghost" size="sm" className="w-fit -ml-2 mb-2 text-muted-foreground hover:text-primary transition-colors" asChild>
                         <Link href="/login">

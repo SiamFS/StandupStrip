@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Mail, Loader2 } from "lucide-react";
+import { Mail, Loader2, Zap } from "lucide-react";
 
 const RegisterSchema = Yup.object().shape({
     name: Yup.string().required("Required"),
@@ -58,9 +58,9 @@ export default function RegisterPage() {
 
     if (isSuccess) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
-                <Card className="w-full max-w-md animate-in fade-in zoom-in duration-500 shadow-xl border-none bg-card/80 backdrop-blur-sm">
-                    <CardHeader className="text-center space-y-2">
+            <div className="flex items-center justify-center min-h-screen bg-background md:bg-muted/40 p-0 md:p-4">
+                <Card className="w-full h-full min-h-screen md:min-h-0 md:h-auto md:max-w-md animate-in fade-in zoom-in duration-500 md:shadow-xl border-none md:border rounded-none md:rounded-xl bg-background md:bg-card/80 md:backdrop-blur-sm flex flex-col justify-center">
+                    <CardHeader className="text-center space-y-2 pt-12 md:pt-6">
                         <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                             <Mail className="w-8 h-8 text-primary" />
                         </div>
@@ -98,19 +98,30 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/40 p-4 relative overflow-hidden">
-            {/* Background decorations */}
-            <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-3xl" />
+        <div className="flex items-center justify-center min-h-screen bg-background md:bg-muted/40 p-0 md:p-4 relative overflow-hidden">
+            {/* Background decorations - only on desktop */}
+            <div className="hidden md:block absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-3xl" />
+            <div className="hidden md:block absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-3xl" />
 
-            <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500 shadow-2xl border-none bg-card/80 backdrop-blur-md relative z-10">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                        Create an Account
-                    </CardTitle>
-                    <CardDescription className="text-center text-base">
-                        Join StandUpStrip to collaborate with your team
-                    </CardDescription>
+            <Card className="w-full h-full min-h-screen md:min-h-0 md:h-auto md:max-w-md animate-in fade-in-0 zoom-in-95 duration-500 md:shadow-2xl border-none md:border rounded-none md:rounded-xl bg-background md:bg-card/80 md:backdrop-blur-md relative z-10 flex flex-col justify-center">
+                <CardHeader className="space-y-4 text-center pt-8 md:pt-6">
+                    {/* Logo Section */}
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                            <Zap className="h-8 w-8 text-white" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight">StandUpStrip</span>
+                    </div>
+
+                    {/* Title */}
+                    <div className="space-y-1 pt-2">
+                        <CardTitle className="text-2xl font-bold">
+                            Create an Account
+                        </CardTitle>
+                        <CardDescription className="text-base">
+                            Join StandUpStrip to collaborate with your team
+                        </CardDescription>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={formik.handleSubmit} className="space-y-4">
