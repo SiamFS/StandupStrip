@@ -23,6 +23,27 @@ export default function ParticipationHeatmap({ teamId }: { teamId: number }) {
     const [loading, setLoading] = useState(true);
     const { theme } = useTheme();
 
+    // Generate minimum required data for ActivityCalendar when no data is available
+    const generateEmptyData = (): HeatmapData[] => {
+        const today = new Date();
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+
+        // ActivityCalendar requires at least start and end dates
+        return [
+            {
+                date: sixMonthsAgo.toISOString().split('T')[0],
+                count: 0,
+                level: 0
+            },
+            {
+                date: today.toISOString().split('T')[0],
+                count: 0,
+                level: 0
+            }
+        ];
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -32,21 +53,17 @@ export default function ParticipationHeatmap({ teamId }: { teamId: number }) {
                 sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // Current month + 5 previous
 
                 const filteredData = response.filter(d => new Date(d.date) >= sixMonthsAgo);
-                setData(filteredData);
+                setData(filteredData.length > 0 ? filteredData : generateEmptyData());
             } catch (error) {
                 console.error("Failed to fetch heatmap data", error);
-                // Fallback to empty data to avoid crashing
-                setData([]);
+                // Fallback to empty data with required minimum structure
+                setData(generateEmptyData());
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
     }, [teamId]);
-
-    // Construct a full year of empty data if the API returns nothing, 
-    // to ensure the calendar renders something locally even if empty.
-    // However, the library is robust enough usually.
 
     if (loading) return <div className="h-40 animate-pulse bg-muted rounded-md w-full"></div>;
 

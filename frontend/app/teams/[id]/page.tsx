@@ -245,9 +245,22 @@ export default function TeamDetailsPage() {
                         )}
                     </div>
                     <div className="flex gap-2">
-                        <Button onClick={() => setIsCreateStandupOpen(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> Submit Standup
-                        </Button>
+                        {(() => {
+                            const hasSubmittedToday = standups.some(s => s.userId === user?.id);
+                            const isToday = date === getLocalDateFormat();
+                            return (
+                                <Button
+                                    onClick={() => setIsCreateStandupOpen(true)}
+                                    disabled={hasSubmittedToday && isToday}
+                                >
+                                    {hasSubmittedToday && isToday ? (
+                                        <><Check className="mr-2 h-4 w-4" /> Standup Submitted</>
+                                    ) : (
+                                        <><Plus className="mr-2 h-4 w-4" /> Submit Standup</>
+                                    )}
+                                </Button>
+                            );
+                        })()}
                         {isOwner && (
                             <Link href={`/teams/${teamId}/settings`}>
                                 <Button variant="outline" size="sm">

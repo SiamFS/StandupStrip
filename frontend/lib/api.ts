@@ -53,12 +53,18 @@ class ApiClient {
             throw new Error(errorMessage);
         }
 
-        // Handle 204 No Content
+        // Handle 204 No Content or empty response body
         if (response.status === 204) {
             return {} as T;
         }
 
-        return response.json();
+        // Check if response body is empty before parsing
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+            return {} as T;
+        }
+
+        return JSON.parse(text) as T;
     }
 
     static get<T>(url: string): Promise<T> {
