@@ -332,6 +332,23 @@ The team made progress on frontend development and API integration.
 
 ---
 
+### F8: Participation Heatmap
+
+**Description:** GitHub-style contribution graph showing team activity.
+
+**Acceptance Criteria:**
+- [ ] Visual heatmap of standup submissions over last 365 days
+- [ ] Color intensity based on number of standups submitted that day
+- [ ] Tooltip on hover showing precise count (e.g., "5 standups on Jan 2")
+- [ ] Empty state for days with zero activity (gray)
+- [ ] Accessible color palette (Green scale by default)
+
+**API Requirements:**
+- [ ] Endpoint to fetch aggregated daily counts for the heatmap
+- [ ] Optimized query to handle year-long data efficiently
+
+---
+
 ## User Stories
 
 ### Epic 1: Authentication

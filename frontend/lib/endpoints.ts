@@ -35,4 +35,7 @@ export const ENDPOINTS = {
         GET_BY_RANGE: (teamId: number, startDate: string, endDate: string) =>
             `/api/summaries/teams/${teamId}/range?startDate=${startDate}&endDate=${endDate}`,
     },
+    STATS: {
+        HEATMAP: (teamId: number) => `/api/stats/teams/${teamId}/heatmap`,
+    },
 };

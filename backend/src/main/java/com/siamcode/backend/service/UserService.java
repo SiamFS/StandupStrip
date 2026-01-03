@@ -22,15 +22,15 @@ public class UserService {
 
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
-        // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // Check if email already exists (case-insensitive)
+        if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new BadRequestException("Email already registered");
         }
 
         // Create new user
         User user = new User();
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setEmail(request.getEmail().toLowerCase()); // Normalize to lowercase
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
         User savedUser = userRepository.save(user);
@@ -54,7 +54,7 @@ public class UserService {
     }
 
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 }

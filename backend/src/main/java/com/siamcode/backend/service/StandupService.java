@@ -127,6 +127,38 @@ public class StandupService {
         return standupRepository.findByTeamIdAndDate(teamId, date);
     }
 
+    public java.util.List<com.siamcode.backend.dto.response.HeatmapStatsResponse> getHeatmapStats(Long teamId,
+            Long currentUserId) {
+        // Verify user is a team member
+        if (!teamService.isTeamMember(currentUserId, teamId)) {
+            throw new UnauthorizedException("You are not a member of this team");
+        }
+
+        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+        List<Object[]> dailyCounts = standupRepository.countDailyStandupsByTeamId(teamId, oneYearAgo);
+
+        return dailyCounts.stream()
+                .map(row -> {
+                    LocalDate date = (LocalDate) row[0];
+                    Long count = (Long) row[1];
+                    int level = calculateLevel(count);
+                    return new com.siamcode.backend.dto.response.HeatmapStatsResponse(date, count, level);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private int calculateLevel(Long count) {
+        if (count <= 0)
+            return 0;
+        if (count <= 2)
+            return 1;
+        if (count <= 5)
+            return 2;
+        if (count <= 8)
+            return 3;
+        return 4;
+    }
+
     private String getUserName(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

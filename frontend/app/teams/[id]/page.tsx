@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { StatsCards } from "@/components/StatsCards";
+import ParticipationHeatmap from "@/components/ParticipationHeatmap";
 import { getLocalDateFormat } from "@/lib/date";
 
 export default function TeamDetailsPage() {
@@ -384,6 +385,8 @@ export default function TeamDetailsPage() {
                         </CardContent>
                     </Card>
                 </div>
+
+                <ParticipationHeatmap teamId={teamId} />
             </div>
 
             <AddMemberModal
