@@ -36,15 +36,16 @@ public class AIService {
 
         // Check if Gemini is configured
         if (!aiConfig.isConfigured()) {
-            log.warn("Gemini API key not configured. Using fallback template-based summary.");
-            return generateFallbackSummary(standups);
+            log.error("Gemini API key not configured");
+            throw new RuntimeException(
+                    "AI Summary generation failed: Gemini API key is not configured. Please set the GEMINI_API_KEY environment variable.");
         }
 
         try {
             return generateGeminiSummary(standups);
         } catch (Exception e) {
-            log.error("Error calling Gemini API: {}. Falling back to template-based summary.", e.getMessage());
-            return generateFallbackSummary(standups);
+            log.error("Error calling Gemini API: {}", e.getMessage());
+            throw new RuntimeException("AI Summary generation failed: " + e.getMessage(), e);
         }
     }
 

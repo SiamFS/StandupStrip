@@ -2,13 +2,21 @@
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Modal } from "@/components/ui/Modal";
+import {
+    ResponsiveModal,
+    ResponsiveModalDescription,
+    ResponsiveModalFooter,
+    ResponsiveModalHeader,
+    ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Textarea } from "@/components/ui/textarea";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const CreateTeamSchema = Yup.object().shape({
     name: Yup.string().required("Required"),
@@ -35,32 +43,46 @@ export function CreateTeamModal({ isOpen, onClose, onSuccess }: CreateTeamModalP
             try {
                 await ApiClient.post(ENDPOINTS.TEAMS.CREATE, values);
                 resetForm();
+                toast.success("Team created successfully!");
                 onSuccess();
                 onClose();
-            } catch (err: any) {
-                setError(err.message || "Failed to create team");
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Failed to create team";
+                setError(message);
+                toast.error(message);
             }
         },
     });
 
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            formik.resetForm();
+            setError(null);
+            onClose();
+        }
+    };
+
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Create New Team"
-            description="Start a new team to track standups"
-        >
-            <form onSubmit={formik.handleSubmit} className="space-y-4">
+        <ResponsiveModal open={isOpen} onOpenChange={handleOpenChange}>
+            <ResponsiveModalHeader>
+                <ResponsiveModalTitle>Create New Team</ResponsiveModalTitle>
+                <ResponsiveModalDescription>
+                    Start a new team to track standups
+                </ResponsiveModalDescription>
+            </ResponsiveModalHeader>
+
+            <form onSubmit={formik.handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                    <Label htmlFor="className">Team Name</Label>
+                    <Label htmlFor="name">Team Name</Label>
                     <Input
                         id="name"
                         placeholder="e.g. Engineering"
+                        className="transition-all duration-200"
                         {...formik.getFieldProps("name")}
                         disabled={formik.isSubmitting}
                     />
                     {formik.touched.name && formik.errors.name && (
-                        <div className="text-sm text-destructive">
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
                             {formik.errors.name}
                         </div>
                     )}
@@ -68,29 +90,30 @@ export function CreateTeamModal({ isOpen, onClose, onSuccess }: CreateTeamModalP
 
                 <div className="space-y-2">
                     <Label htmlFor="description">Description (Optional)</Label>
-                    <Input
+                    <Textarea
                         id="description"
                         placeholder="What is this team about?"
+                        className="min-h-[80px] transition-all duration-200"
                         {...formik.getFieldProps("description")}
                         disabled={formik.isSubmitting}
                     />
                 </div>
 
                 {error && (
-                    <div className="text-sm text-destructive font-medium">
+                    <div className="text-sm text-destructive font-medium animate-in fade-in-0">
                         {error}
                     </div>
                 )}
 
-                <div className="flex justify-end gap-2 pt-2">
+                <ResponsiveModalFooter className="gap-2 pt-2">
                     <Button type="button" variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button type="submit" disabled={formik.isSubmitting}>
                         {formik.isSubmitting ? "Creating..." : "Create Team"}
                     </Button>
-                </div>
+                </ResponsiveModalFooter>
             </form>
-        </Modal>
+        </ResponsiveModal>
     );
 }

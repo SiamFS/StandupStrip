@@ -17,6 +17,8 @@ class ApiClient {
         const token = this.getToken();
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
             ...options.headers,
         };
 
@@ -27,6 +29,7 @@ class ApiClient {
         const response = await fetch(url, {
             ...options,
             headers,
+            cache: "no-store", // Disable Next.js fetch caching
         });
 
         if (!response.ok) {
@@ -50,12 +53,23 @@ class ApiClient {
             throw new Error(errorMessage);
         }
 
-        // Handle 204 No Content
+        // Handle 204 No Content or empty response body
         if (response.status === 204) {
             return {} as T;
         }
 
-        return response.json();
+        // Check if response body is empty before parsing
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+            return {} as T;
+        }
+
+        // Try to parse as JSON, fallback to returning text as-is for plain text responses
+        try {
+            return JSON.parse(text) as T;
+        } catch {
+            return text as T;
+        }
     }
 
     static get<T>(url: string): Promise<T> {
