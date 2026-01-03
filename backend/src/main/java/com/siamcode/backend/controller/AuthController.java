@@ -40,4 +40,29 @@ public class AuthController {
         authService.verifyPassword(userId, request.getPassword());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok("Email verified successfully. You can now login.");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestParam String email) {
+        authService.initiatePasswordReset(email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestParam String token, @RequestParam String password) {
+        authService.resetPassword(token, password);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification() {
+        Long userId = securityHelper.getCurrentUserId();
+        authService.resendVerificationEmail(userId);
+        return ResponseEntity.ok("Verification email sent successfully.");
+    }
 }

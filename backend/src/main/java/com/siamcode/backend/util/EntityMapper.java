@@ -14,6 +14,7 @@ public class EntityMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.isVerified(),
                 user.getCreatedAt());
     }
 

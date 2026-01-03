@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, Save } from "lucide-react";
+import { User, Mail, Save, BadgeCheck, AlertTriangle, Send } from "lucide-react";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +18,7 @@ export default function ProfilePage() {
     const { user, isLoading: authLoading, updateUser } = useAuth();
     const [name, setName] = useState("");
     const [saving, setSaving] = useState(false);
+    const [resending, setResending] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -44,6 +45,19 @@ export default function ProfilePage() {
             toast.error(message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setResending(true);
+        try {
+            await ApiClient.post(ENDPOINTS.AUTH.RESEND_VERIFICATION, {});
+            toast.success("Verification email sent! Please check your inbox.");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to send verification email";
+            toast.error(message);
+        } finally {
+            setResending(false);
         }
     };
 
@@ -86,7 +100,12 @@ export default function ProfilePage() {
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <CardTitle>{user?.name}</CardTitle>
+                                <CardTitle className="flex items-center gap-2">
+                                    {user?.name}
+                                    {user?.verified && (
+                                        <BadgeCheck className="h-5 w-5 text-blue-500" />
+                                    )}
+                                </CardTitle>
                                 <CardDescription className="flex items-center gap-1 mt-1">
                                     <Mail className="h-3 w-3" />
                                     {user?.email}
@@ -94,6 +113,26 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     </CardHeader>
+                    {!user?.verified && (
+                        <CardContent className="pt-0">
+                            <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Email not verified</span>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleResendVerification}
+                                    disabled={resending}
+                                    className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                >
+                                    <Send className="h-3 w-3 mr-1" />
+                                    {resending ? "Sending..." : "Resend Email"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    )}
                 </Card>
 
                 {/* Edit Profile */}

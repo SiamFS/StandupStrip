@@ -64,7 +64,12 @@ class ApiClient {
             return {} as T;
         }
 
-        return JSON.parse(text) as T;
+        // Try to parse as JSON, fallback to returning text as-is for plain text responses
+        try {
+            return JSON.parse(text) as T;
+        } catch {
+            return text as T;
+        }
     }
 
     static get<T>(url: string): Promise<T> {

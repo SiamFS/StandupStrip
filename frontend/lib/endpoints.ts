@@ -5,6 +5,7 @@ export const ENDPOINTS = {
         LOGIN: "/api/auth/login",
         REGISTER: "/api/auth/register",
         VERIFY_PASSWORD: "/api/auth/verify-password",
+        RESEND_VERIFICATION: "/api/auth/resend-verification",
     },
     USERS: {
         GET_BY_ID: (id: number) => `/api/users/${id}`,
