@@ -182,6 +182,23 @@ public class TeamService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get team member entities (for internal service use)
+     */
+    public List<User> getTeamMemberEntities(Long teamId) {
+        List<TeamMember> members = teamMemberRepository.findByTeamId(teamId);
+
+        if (members.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> userIds = members.stream()
+                .map(TeamMember::getUserId)
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(userIds);
+    }
+
     public TeamResponse getTeamByInviteCode(String inviteCode) {
         Team team = teamRepository.findByInviteCodeAndDeletedFalse(inviteCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid invite code"));

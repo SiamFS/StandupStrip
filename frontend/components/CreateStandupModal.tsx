@@ -3,13 +3,12 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+    ResponsiveModal,
+    ResponsiveModalDescription,
+    ResponsiveModalFooter,
+    ResponsiveModalHeader,
+    ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,95 +65,94 @@ export function CreateStandupModal({ isOpen, onClose, onSuccess, teamId }: Creat
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Submit Daily Standup</DialogTitle>
-                    <DialogDescription>
-                        Share your progress and blockers with the team
-                    </DialogDescription>
-                </DialogHeader>
+        <ResponsiveModal open={isOpen} onOpenChange={handleOpenChange}>
+            <ResponsiveModalHeader>
+                <ResponsiveModalTitle>Submit Daily Standup</ResponsiveModalTitle>
+                <ResponsiveModalDescription>
+                    Share your progress and blockers with the team
+                </ResponsiveModalDescription>
+            </ResponsiveModalHeader>
 
-                <form onSubmit={formik.handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <Label htmlFor="yesterdayText">What did you do yesterday?</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {formik.values.yesterdayText.length}/2000
-                            </span>
-                        </div>
-                        <Textarea
-                            id="yesterdayText"
-                            placeholder="Worked on..."
-                            className="min-h-[80px] transition-all duration-200 focus:ring-2"
-                            {...formik.getFieldProps("yesterdayText")}
-                            disabled={formik.isSubmitting}
-                        />
-                        {formik.touched.yesterdayText && formik.errors.yesterdayText && (
-                            <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
-                                {formik.errors.yesterdayText}
-                            </div>
-                        )}
+            <form onSubmit={formik.handleSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <Label htmlFor="yesterdayText">What did you do yesterday?</Label>
+                        <span className="text-xs text-muted-foreground">
+                            {formik.values.yesterdayText.length}/2000
+                        </span>
                     </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <Label htmlFor="todayText">What will you do today?</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {formik.values.todayText.length}/2000
-                            </span>
-                        </div>
-                        <Textarea
-                            id="todayText"
-                            placeholder="Will work on..."
-                            className="min-h-[80px] transition-all duration-200 focus:ring-2"
-                            {...formik.getFieldProps("todayText")}
-                            disabled={formik.isSubmitting}
-                        />
-                        {formik.touched.todayText && formik.errors.todayText && (
-                            <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
-                                {formik.errors.todayText}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <Label htmlFor="blockersText">Any blockers?</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {formik.values.blockersText.length}/1000
-                            </span>
-                        </div>
-                        <Textarea
-                            id="blockersText"
-                            placeholder="None"
-                            className="min-h-[80px] transition-all duration-200 focus:ring-2"
-                            {...formik.getFieldProps("blockersText")}
-                            disabled={formik.isSubmitting}
-                        />
-                        {formik.touched.blockersText && formik.errors.blockersText && (
-                            <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
-                                {formik.errors.blockersText}
-                            </div>
-                        )}
-                    </div>
-
-                    {error && (
-                        <div className="text-sm text-destructive font-medium animate-in fade-in-0">
-                            {error}
+                    <Textarea
+                        id="yesterdayText"
+                        placeholder="Worked on..."
+                        className="min-h-[80px] transition-all duration-200 focus:ring-2"
+                        {...formik.getFieldProps("yesterdayText")}
+                        disabled={formik.isSubmitting}
+                    />
+                    {formik.touched.yesterdayText && formik.errors.yesterdayText && (
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
+                            {formik.errors.yesterdayText}
                         </div>
                     )}
+                </div>
 
-                    <DialogFooter className="gap-2 pt-2">
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={formik.isSubmitting}>
-                            {formik.isSubmitting ? "Submitting..." : "Submit"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <Label htmlFor="todayText">What will you do today?</Label>
+                        <span className="text-xs text-muted-foreground">
+                            {formik.values.todayText.length}/2000
+                        </span>
+                    </div>
+                    <Textarea
+                        id="todayText"
+                        placeholder="Will work on..."
+                        className="min-h-[80px] transition-all duration-200 focus:ring-2"
+                        {...formik.getFieldProps("todayText")}
+                        disabled={formik.isSubmitting}
+                    />
+                    {formik.touched.todayText && formik.errors.todayText && (
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
+                            {formik.errors.todayText}
+                        </div>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <Label htmlFor="blockersText">Any blockers?</Label>
+                        <span className="text-xs text-muted-foreground">
+                            {formik.values.blockersText.length}/1000
+                        </span>
+                    </div>
+                    <Textarea
+                        id="blockersText"
+                        placeholder="None"
+                        className="min-h-[80px] transition-all duration-200 focus:ring-2"
+                        {...formik.getFieldProps("blockersText")}
+                        disabled={formik.isSubmitting}
+                    />
+                    {formik.touched.blockersText && formik.errors.blockersText && (
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
+                            {formik.errors.blockersText}
+                        </div>
+                    )}
+                </div>
+
+                {error && (
+                    <div className="text-sm text-destructive font-medium animate-in fade-in-0">
+                        {error}
+                    </div>
+                )}
+
+                <ResponsiveModalFooter className="gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={formik.isSubmitting}>
+                        {formik.isSubmitting ? "Submitting..." : "Submit"}
+                    </Button>
+                </ResponsiveModalFooter>
+            </form>
+        </ResponsiveModal>
     );
 }
+

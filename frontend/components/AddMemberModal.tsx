@@ -3,13 +3,12 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+    ResponsiveModal,
+    ResponsiveModalDescription,
+    ResponsiveModalFooter,
+    ResponsiveModalHeader,
+    ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -65,48 +64,46 @@ export function AddMemberModal({ isOpen, onClose, onSuccess, teamId }: AddMember
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Add Team Member</DialogTitle>
-                    <DialogDescription>
-                        Invite a user to this team by email
-                    </DialogDescription>
-                </DialogHeader>
+        <ResponsiveModal open={isOpen} onOpenChange={handleOpenChange}>
+            <ResponsiveModalHeader>
+                <ResponsiveModalTitle>Add Team Member</ResponsiveModalTitle>
+                <ResponsiveModalDescription>
+                    Invite a user to this team by email
+                </ResponsiveModalDescription>
+            </ResponsiveModalHeader>
 
-                <form onSubmit={formik.handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">User Email</Label>
-                        <Input
-                            id="email"
-                            placeholder="colleague@example.com"
-                            className="transition-all duration-200"
-                            {...formik.getFieldProps("email")}
-                            disabled={formik.isSubmitting}
-                        />
-                        {formik.touched.email && formik.errors.email && (
-                            <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
-                                {formik.errors.email}
-                            </div>
-                        )}
-                    </div>
-
-                    {error && (
-                        <div className="text-sm text-destructive font-medium animate-in fade-in-0">
-                            {error}
+            <form onSubmit={formik.handleSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                    <Label htmlFor="email">User Email</Label>
+                    <Input
+                        id="email"
+                        placeholder="colleague@example.com"
+                        className="transition-all duration-200"
+                        {...formik.getFieldProps("email")}
+                        disabled={formik.isSubmitting}
+                    />
+                    {formik.touched.email && formik.errors.email && (
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
+                            {formik.errors.email}
                         </div>
                     )}
+                </div>
 
-                    <DialogFooter className="gap-2 pt-2">
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={formik.isSubmitting}>
-                            {formik.isSubmitting ? "Adding..." : "Add Member"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                {error && (
+                    <div className="text-sm text-destructive font-medium animate-in fade-in-0">
+                        {error}
+                    </div>
+                )}
+
+                <ResponsiveModalFooter className="gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={formik.isSubmitting}>
+                        {formik.isSubmitting ? "Adding..." : "Add Member"}
+                    </Button>
+                </ResponsiveModalFooter>
+            </form>
+        </ResponsiveModal>
     );
 }

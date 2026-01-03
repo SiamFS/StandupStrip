@@ -69,8 +69,8 @@ export default function ParticipationHeatmap({ teamId }: { teamId: number }) {
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm">
-                <div className="flex items-center justify-between mb-4">
+            <div className="p-4 sm:p-6 border rounded-xl bg-card text-card-foreground shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <h3 className="font-semibold text-lg">Team Participation</h3>
                     <div className="text-xs text-muted-foreground flex gap-2 items-center">
                         <span>Less</span>
@@ -84,7 +84,7 @@ export default function ParticipationHeatmap({ teamId }: { teamId: number }) {
                         <span>More</span>
                     </div>
                 </div>
-                <div className="flex justify-center w-full overflow-x-auto">
+                <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
                     <ActivityCalendar
                         data={data}
                         labels={{

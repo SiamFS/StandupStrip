@@ -49,4 +49,11 @@ public class AuthService {
         }
         return jwtUtil.getUserIdFromToken(token);
     }
+
+    public void verifyPassword(Long userId, String password) {
+        User user = userService.findUserEntityById(userId);
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new UnauthorizedException("Invalid password");
+        }
+    }
 }

@@ -119,7 +119,7 @@ function JoinTeamContent() {
                         <>
                             <div className="space-y-2">
                                 <Label htmlFor="code">Invite Code</Label>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <Input
                                         id="code"
                                         placeholder="e.g. ABC12345"
@@ -128,7 +128,7 @@ function JoinTeamContent() {
                                         className="font-mono tracking-wider transition-all duration-200"
                                         maxLength={8}
                                     />
-                                    <Button onClick={handleLookup} disabled={loading || !code.trim()}>
+                                    <Button onClick={handleLookup} disabled={loading || !code.trim()} className="w-full sm:w-auto">
                                         <Search className="mr-2 h-4 w-4" />
                                         {loading ? "Looking..." : "Lookup"}
                                     </Button>

@@ -2,7 +2,9 @@ package com.siamcode.backend.controller;
 
 import com.siamcode.backend.dto.request.LoginRequest;
 import com.siamcode.backend.dto.request.RegisterRequest;
+import com.siamcode.backend.dto.request.VerifyPasswordRequest;
 import com.siamcode.backend.dto.response.AuthResponse;
+import com.siamcode.backend.security.SecurityHelper;
 import com.siamcode.backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final SecurityHelper securityHelper;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -29,5 +32,12 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<Void> verifyPassword(@Valid @RequestBody VerifyPasswordRequest request) {
+        Long userId = securityHelper.getCurrentUserId();
+        authService.verifyPassword(userId, request.getPassword());
+        return ResponseEntity.ok().build();
     }
 }

@@ -163,7 +163,7 @@ export default function Layout({ children }: LayoutProps) {
                     <span className="font-semibold">StandUpStrip</span>
                 </header>
 
-                <div className="flex-1 p-6 lg:p-10 overflow-auto animate-in fade-in-0 duration-300">
+                <div className="flex-1 p-4 md:p-6 lg:p-10 w-full">
                     {children}
                 </div>
             </main>

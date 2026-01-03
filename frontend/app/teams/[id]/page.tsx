@@ -13,7 +13,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Calendar, Plus, Trash2, Settings, FileText, Copy, Check, AlertCircle } from "lucide-react";
+import { Users, Calendar, Plus, Trash2, Settings, FileText, Copy, Check, AlertCircle, RefreshCw } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ApiClient from "@/lib/api";
@@ -23,7 +24,7 @@ import { AddMemberModal } from "@/components/AddMemberModal";
 import { CreateStandupModal } from "@/components/CreateStandupModal";
 import { EditStandupModal } from "@/components/EditStandupModal";
 import { StandupList } from "@/components/StandupList";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Team, UserResponse, StandupResponse, StandupSummaryResponse } from "@/lib/types";
 import { Input } from "@/components/ui/Input";
@@ -36,6 +37,8 @@ import { getLocalDateFormat } from "@/lib/date";
 export default function TeamDetailsPage() {
     const { user, isLoading: authLoading } = useAuth();
     const params = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const teamId = Number(params.id);
 
     const [team, setTeam] = useState<Team | null>(null);
@@ -55,11 +58,24 @@ export default function TeamDetailsPage() {
     const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
     const [isCreateStandupOpen, setIsCreateStandupOpen] = useState(false);
 
+    // Handle ?submit=true query param from email link
+    useEffect(() => {
+        if (searchParams.get("submit") === "true" && !loading && user) {
+            setIsCreateStandupOpen(true);
+            // Clear the query param from URL without navigation
+            router.replace(`/teams/${teamId}`, { scroll: false });
+        }
+    }, [searchParams, loading, user, teamId, router]);
+
     const [summary, setSummary] = useState<StandupSummaryResponse | null>(null);
     const [summaryError, setSummaryError] = useState<string | null>(null);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
     const [editingStandup, setEditingStandup] = useState<StandupResponse | null>(null);
+
+    // Reminder state
+    const [sendingReminders, setSendingReminders] = useState<Set<number>>(new Set());
+    const [sendingAllReminders, setSendingAllReminders] = useState(false);
 
     const fetchTeamData = async () => {
         try {
@@ -145,6 +161,44 @@ export default function TeamDetailsPage() {
         }
     }, [user, teamId, date]);
 
+    const handleSendReminder = async (userId: number) => {
+        setSendingReminders(prev => new Set(prev).add(userId));
+        try {
+            interface ReminderResponse { emailsSent: number; message: string; }
+            const response = await ApiClient.post<ReminderResponse>(
+                ENDPOINTS.REMINDERS.SEND_TO_MEMBER(teamId, userId),
+                {}
+            );
+            toast.success(response.message);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : "Failed to send reminder";
+            toast.error(message);
+        } finally {
+            setSendingReminders(prev => {
+                const next = new Set(prev);
+                next.delete(userId);
+                return next;
+            });
+        }
+    };
+
+    const handleSendAllReminders = async () => {
+        setSendingAllReminders(true);
+        try {
+            interface ReminderResponse { emailsSent: number; message: string; }
+            const response = await ApiClient.post<ReminderResponse>(
+                ENDPOINTS.REMINDERS.SEND_TO_ALL_PENDING(teamId),
+                {}
+            );
+            toast.success(response.message);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : "Failed to send reminders";
+            toast.error(message);
+        } finally {
+            setSendingAllReminders(false);
+        }
+    };
+
     const handleRemoveMember = async (userId: number) => {
         if (!confirm("Are you sure you want to remove this member?")) return;
         try {
@@ -214,17 +268,17 @@ export default function TeamDetailsPage() {
 
     return (
         <Layout>
-            <div className="space-y-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
-                        <p className="text-muted-foreground">
+            <div className="space-y-4 sm:space-y-6">
+                <div className="flex flex-col gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{team.name}</h1>
+                        <p className="text-sm text-muted-foreground">
                             Created on {new Date(team.createdAt).toLocaleDateString()}
                         </p>
                         {isOwner && team.inviteCode && (
-                            <div className="flex items-center mt-2">
-                                <span className="text-sm text-muted-foreground mr-2">Invite Code:</span>
-                                <code className="bg-muted px-2 py-1 rounded text-sm font-mono mr-2">{team.inviteCode}</code>
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                <span className="text-xs sm:text-sm text-muted-foreground">Invite Code:</span>
+                                <code className="bg-muted px-2 py-1 rounded text-xs sm:text-sm font-mono break-all">{team.inviteCode}</code>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -244,7 +298,7 @@ export default function TeamDetailsPage() {
                             </div>
                         )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:self-end">
                         {(() => {
                             const hasSubmittedToday = standups.some(s => s.userId === user?.id);
                             const isToday = date === getLocalDateFormat();
@@ -252,6 +306,7 @@ export default function TeamDetailsPage() {
                                 <Button
                                     onClick={() => setIsCreateStandupOpen(true)}
                                     disabled={hasSubmittedToday && isToday}
+                                    className="w-full sm:w-auto"
                                 >
                                     {hasSubmittedToday && isToday ? (
                                         <><Check className="mr-2 h-4 w-4" /> Standup Submitted</>
@@ -262,8 +317,8 @@ export default function TeamDetailsPage() {
                             );
                         })()}
                         {isOwner && (
-                            <Link href={`/teams/${teamId}/settings`}>
-                                <Button variant="outline" size="sm">
+                            <Link href={`/teams/${teamId}/settings`} className="w-full sm:w-auto">
+                                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                                     <Settings className="mr-2 h-4 w-4" /> Settings
                                 </Button>
                             </Link>
@@ -280,37 +335,40 @@ export default function TeamDetailsPage() {
                     date={date}
                 />
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {/* Members Card */}
-                    <Card className="col-span-1 md:col-span-2 lg:col-span-1 h-fit hover:shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="col-span-1 h-fit hover:shadow-lg transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
                             <CardTitle className="text-lg font-medium">Team Members</CardTitle>
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
-                        <CardContent className="pt-4">
+                        <CardContent className="pt-4 px-4 sm:px-6">
                             <div className="space-y-4">
                                 {members.map((member, index) => (
                                     <div
                                         key={member.id}
                                         className={cn(
-                                            "flex items-center justify-between animate-in fade-in-0 slide-in-from-left-2",
+                                            "flex items-center justify-between gap-2 animate-in fade-in-0",
                                         )}
                                         style={{ animationDelay: `${index * 50}ms` }}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9">
+                                        <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+                                            <Avatar className="h-9 w-9 flex-shrink-0">
                                                 <AvatarFallback className="bg-primary/20 text-primary font-medium text-sm">
                                                     {member.name.charAt(0).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div>
-                                                <p className="text-sm font-medium leading-none">{member.name}</p>
-                                                <p className="text-xs text-muted-foreground">{member.email}</p>
+                                            <div className="min-w-0 truncate">
+                                                <p className="text-sm font-medium leading-none truncate">{member.name}</p>
+                                                <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-shrink-0">
                                             {member.id === team.ownerUserId && (
-                                                <Badge variant="secondary">Owner</Badge>
+                                                <Badge variant="secondary" className="hidden sm:inline-flex">Owner</Badge>
+                                            )}
+                                            {member.id === team.ownerUserId && (
+                                                <Badge variant="secondary" className="sm:hidden text-[10px] px-1 h-5">Own</Badge>
                                             )}
                                             {isOwner && member.id !== user?.id && (
                                                 <Button
@@ -337,62 +395,111 @@ export default function TeamDetailsPage() {
                     </Card>
 
                     {/* Standups Overview */}
-                    <Card className="col-span-1 md:col-span-2 lg:col-span-2 hover:shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <div>
-                                <CardTitle>Daily Standups</CardTitle>
-                                <CardDescription>Updates from the team</CardDescription>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Input
-                                    type="date"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                    className="w-auto transition-all duration-200"
-                                />
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setDate(getLocalDateFormat())}
-                                        className={cn(
-                                            "transition-all duration-200",
-                                            date === getLocalDateFormat() && 'bg-primary/10'
-                                        )}
-                                    >
-                                        Today
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            const yesterday = new Date();
-                                            yesterday.setDate(yesterday.getDate() - 1);
-                                            setDate(getLocalDateFormat(yesterday));
-                                        }}
-                                    >
-                                        Yesterday
-                                    </Button>
+                    <Card className="col-span-1 md:col-span-2 hover:shadow-lg transition-shadow">
+                        <CardHeader className="flex flex-col gap-3 sm:gap-4 pb-2 px-4 sm:px-6">
+                            <div className="flex flex-col gap-3 sm:gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div>
+                                        <CardTitle className="text-base sm:text-lg">Daily Standups</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">Updates from the team</CardDescription>
+                                    </div>
+                                    <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
+                                        <Input
+                                            type="date"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="w-full sm:w-auto transition-all duration-200 text-sm"
+                                        />
+                                        <div className="flex gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setDate(getLocalDateFormat())}
+                                                className={cn(
+                                                    "transition-all duration-200 flex-1 xs:flex-none text-xs sm:text-sm",
+                                                    date === getLocalDateFormat() && 'bg-primary/10'
+                                                )}
+                                            >
+                                                Today
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex-1 xs:flex-none text-xs sm:text-sm"
+                                                onClick={() => {
+                                                    const yesterday = new Date();
+                                                    yesterday.setDate(yesterday.getDate() - 1);
+                                                    setDate(getLocalDateFormat(yesterday));
+                                                }}
+                                            >
+                                                Yesterday
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
-                                {summary ? (
-                                    <Button variant="outline" size="sm" onClick={handleViewSummary}>
-                                        <FileText className="mr-2 h-4 w-4" /> View Summary
-                                    </Button>
-                                ) : (
-                                    <Button variant="outline" size="sm" onClick={handleGenerateSummary} disabled={summaryLoading || standups.length === 0}>
-                                        <FileText className="mr-2 h-4 w-4" /> {summaryLoading ? "Generating..." : "Generate Summary"}
-                                    </Button>
-                                )}
+                            </div>
+                            {/* Summary button on separate row for mobile */}
+                            <div className="flex justify-start sm:justify-end">
+                                {(() => {
+                                    // Check if summary is stale (any standup was created after the summary)
+                                    const isSummaryStale = summary && standups.some(s => new Date(s.createdAt) > new Date(summary.createdAt));
+                                    const needsNewSummary = !summary || isSummaryStale;
+                                    const hasEnoughStandups = standups.length >= 2;
+                                    const isDisabled = summaryLoading || !hasEnoughStandups;
+
+                                    if (needsNewSummary) {
+                                        return (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span tabIndex={isDisabled ? 0 : -1}>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={handleGenerateSummary}
+                                                                disabled={isDisabled}
+                                                                className={isDisabled ? "pointer-events-none" : ""}
+                                                            >
+                                                                {isSummaryStale ? (
+                                                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                                                ) : (
+                                                                    <FileText className="mr-2 h-4 w-4" />
+                                                                )}
+                                                                {summaryLoading ? "Generating..." : isSummaryStale ? "Regenerate Summary" : "Generate Summary"}
+                                                            </Button>
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    {!hasEnoughStandups && (
+                                                        <TooltipContent>
+                                                            <p>At least 2 standups are required to generate a summary</p>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        );
+                                    } else {
+                                        return (
+                                            <Button variant="outline" size="sm" onClick={handleViewSummary}>
+                                                <FileText className="mr-2 h-4 w-4" /> View Summary
+                                            </Button>
+                                        );
+                                    }
+                                })()}
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-4 sm:px-6">
                             <StandupList
                                 standups={standups}
                                 members={members}
                                 loading={standupsLoading}
                                 currentUserId={user?.id}
+                                isOwner={isOwner}
                                 onDelete={handleRemoveStandup}
                                 onEdit={setEditingStandup}
+                                onSendReminder={handleSendReminder}
+                                onSendAllReminders={handleSendAllReminders}
+                                sendingReminders={sendingReminders}
+                                sendingAllReminders={sendingAllReminders}
                                 todayDate={date}
                             />
                         </CardContent>

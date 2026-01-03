@@ -33,3 +33,13 @@ export interface StandupSummaryResponse {
     generatedByAi: boolean;
     createdAt: string;
 }
+
+export interface WeeklySummaryResponse {
+    id: number;
+    teamId: number;
+    weekStartDate: string;
+    weekEndDate: string;
+    summaryText: string;
+    sentToOwner: boolean;
+    createdAt: string;
+}
