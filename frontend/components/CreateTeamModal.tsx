@@ -3,13 +3,12 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+    ResponsiveModal,
+    ResponsiveModalDescription,
+    ResponsiveModalFooter,
+    ResponsiveModalHeader,
+    ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -64,59 +63,57 @@ export function CreateTeamModal({ isOpen, onClose, onSuccess }: CreateTeamModalP
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Create New Team</DialogTitle>
-                    <DialogDescription>
-                        Start a new team to track standups
-                    </DialogDescription>
-                </DialogHeader>
+        <ResponsiveModal open={isOpen} onOpenChange={handleOpenChange}>
+            <ResponsiveModalHeader>
+                <ResponsiveModalTitle>Create New Team</ResponsiveModalTitle>
+                <ResponsiveModalDescription>
+                    Start a new team to track standups
+                </ResponsiveModalDescription>
+            </ResponsiveModalHeader>
 
-                <form onSubmit={formik.handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Team Name</Label>
-                        <Input
-                            id="name"
-                            placeholder="e.g. Engineering"
-                            className="transition-all duration-200"
-                            {...formik.getFieldProps("name")}
-                            disabled={formik.isSubmitting}
-                        />
-                        {formik.touched.name && formik.errors.name && (
-                            <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
-                                {formik.errors.name}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description (Optional)</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="What is this team about?"
-                            className="min-h-[80px] transition-all duration-200"
-                            {...formik.getFieldProps("description")}
-                            disabled={formik.isSubmitting}
-                        />
-                    </div>
-
-                    {error && (
-                        <div className="text-sm text-destructive font-medium animate-in fade-in-0">
-                            {error}
+            <form onSubmit={formik.handleSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Team Name</Label>
+                    <Input
+                        id="name"
+                        placeholder="e.g. Engineering"
+                        className="transition-all duration-200"
+                        {...formik.getFieldProps("name")}
+                        disabled={formik.isSubmitting}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                        <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
+                            {formik.errors.name}
                         </div>
                     )}
+                </div>
 
-                    <DialogFooter className="gap-2 pt-2">
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={formik.isSubmitting}>
-                            {formik.isSubmitting ? "Creating..." : "Create Team"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Textarea
+                        id="description"
+                        placeholder="What is this team about?"
+                        className="min-h-[80px] transition-all duration-200"
+                        {...formik.getFieldProps("description")}
+                        disabled={formik.isSubmitting}
+                    />
+                </div>
+
+                {error && (
+                    <div className="text-sm text-destructive font-medium animate-in fade-in-0">
+                        {error}
+                    </div>
+                )}
+
+                <ResponsiveModalFooter className="gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={formik.isSubmitting}>
+                        {formik.isSubmitting ? "Creating..." : "Create Team"}
+                    </Button>
+                </ResponsiveModalFooter>
+            </form>
+        </ResponsiveModal>
     );
 }

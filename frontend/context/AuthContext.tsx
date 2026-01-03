@@ -9,6 +9,7 @@ interface User {
     id: number;
     email: string;
     name: string;
+    verified: boolean;
 }
 
 interface AuthContextType {
@@ -60,12 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("token", authToken);
             setToken(authToken);
 
-            // Backend returns { token, user: { id, email, name } }
+            // Backend returns { token, user: { id, email, name, verified } }
             if (response.user) {
-                const userObj = {
+                const userObj: User = {
                     id: response.user.id,
                     email: response.user.email,
-                    name: response.user.name
+                    name: response.user.name,
+                    verified: response.user.verified ?? false
                 };
                 localStorage.setItem("user", JSON.stringify(userObj));
                 setUser(userObj);
@@ -88,12 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("token", authToken);
             setToken(authToken);
 
-            // Backend returns { token, user: { id, email, name } }
+            // Backend returns { token, user: { id, email, name, verified } }
             if (response.user) {
-                const userObj = {
+                const userObj: User = {
                     id: response.user.id,
                     email: response.user.email,
-                    name: response.user.name
+                    name: response.user.name,
+                    verified: response.user.verified ?? false
                 };
                 localStorage.setItem("user", JSON.stringify(userObj));
                 setUser(userObj);

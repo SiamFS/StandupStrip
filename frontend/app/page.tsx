@@ -7,7 +7,7 @@ import {
   Users,
   Calendar,
   Sparkles,
-  Clock,
+  Mail,
   BarChart3,
   Shield,
   ArrowRight,
@@ -27,34 +27,34 @@ const features = [
   {
     icon: Sparkles,
     title: "AI-Powered Summaries",
-    description: "One click to generate intelligent daily summaries with key themes and blockers highlighted.",
+    description: "Daily & weekly AI summaries with key themes, blockers, and progress insights.",
   },
   {
     icon: Users,
-    title: "Team Management",
-    description: "Create teams, invite members with codes, and track everyone's updates in one place.",
-  },
-  {
-    icon: Clock,
-    title: "Async-First Design",
-    description: "No more scheduling conflicts. Submit updates when it works for you.",
+    title: "Team Invitations",
+    description: "Invite members via email or shareable codes. They get a beautiful invite email to join instantly.",
   },
   {
     icon: BarChart3,
-    title: "Participation Analytics",
-    description: "Track team engagement, identify patterns, and celebrate consistency.",
+    title: "Participation Heatmap",
+    description: "GitHub-style contribution graph showing team activity over time. Celebrate consistency.",
+  },
+  {
+    icon: Mail,
+    title: "Email Notifications",
+    description: "Verification emails, password reset, blocker alerts, and weekly summaries—all automated.",
   },
   {
     icon: Shield,
-    title: "Simple & Lightweight",
-    description: "No Jira complexity. No enterprise setup. Just standups that work.",
+    title: "Secure & Lightweight",
+    description: "Email verification, password reset, secure team deletion. No Jira complexity.",
   },
 ];
 
 const benefits = [
-  "Replace scattered Slack updates",
-  "Skip the 15-min sync meetings",
-  "AI summaries for managers",
+  "Email verification & password reset",
+  "Weekly AI summaries to your inbox",
+  "Blocker alerts for team owners",
   "Works across time zones",
 ];
 

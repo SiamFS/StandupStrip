@@ -75,7 +75,7 @@ export function StatsCards({
                     <Card
                         key={stat.title}
                         className={cn(
-                            "animate-in fade-in-0 slide-in-from-bottom-2 transition-all duration-200 hover:shadow-md"
+                            "animate-in fade-in-0 transition-all duration-200 hover:shadow-md"
                         )}
                         style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -101,7 +101,7 @@ export function StatsCards({
 
             {/* Blocker Alert Card - Only show if there are blockers */}
             {hasBlockers && (
-                <Card className="md:col-span-2 lg:col-span-4 border-amber-500/30 bg-amber-500/5 animate-in fade-in-0 slide-in-from-bottom-2">
+                <Card className="md:col-span-2 lg:col-span-4 border-amber-500/30 bg-amber-500/5 animate-in fade-in-0">
                     <CardContent className="flex items-center gap-4 py-4">
                         <div className="p-3 rounded-full bg-amber-500/10">
                             <AlertTriangle className="h-5 w-5 text-amber-500" />

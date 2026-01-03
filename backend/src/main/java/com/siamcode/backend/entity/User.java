@@ -26,6 +26,18 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Column(columnDefinition = "boolean default true")
+    private boolean verified = true;
+
+    @Column
+    private String verificationToken;
+
+    @Column
+    private String passwordResetToken;
+
+    @Column
+    private LocalDateTime tokenExpiry;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

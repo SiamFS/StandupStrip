@@ -125,7 +125,7 @@ export default function Layout({ children }: LayoutProps) {
     );
 
     return (
-        <div className="min-h-screen bg-background flex">
+        <div className="min-h-screen bg-background flex overflow-x-hidden">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 flex-col bg-card border-r">
                 <div className="h-16 flex items-center px-6 border-b">
@@ -139,7 +139,7 @@ export default function Layout({ children }: LayoutProps) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-h-screen lg:pl-64">
+            <main className="flex-1 flex flex-col min-h-screen lg:pl-64 min-w-0 overflow-x-hidden">
                 {/* Mobile Header */}
                 <header className="h-16 border-b flex items-center px-4 lg:hidden bg-card sticky top-0 z-40">
                     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -163,7 +163,7 @@ export default function Layout({ children }: LayoutProps) {
                     <span className="font-semibold">StandUpStrip</span>
                 </header>
 
-                <div className="flex-1 p-6 lg:p-10 overflow-auto animate-in fade-in-0 duration-300">
+                <div className="flex-1 p-4 md:p-6 lg:p-10 w-full min-w-0 overflow-x-hidden">
                     {children}
                 </div>
             </main>
