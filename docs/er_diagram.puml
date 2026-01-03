@@ -1,0 +1,123 @@
+@startuml StandUpStrip ER Diagram
+
+!define TABLE(x) entity x << (T,#FFAAAA) >>
+!define PK(x) <b><u>x</u></b>
+!define FK(x) <i>x</i>
+
+skinparam linetype ortho
+skinparam backgroundColor #FAFAFA
+skinparam entity {
+    BackgroundColor #F8F8F8
+    BorderColor #333333
+    ArrowColor #666666
+}
+
+title StandUpStrip - Entity Relationship Diagram
+
+TABLE(users) {
+    PK(id) : BIGINT <<PK>>
+    --
+    name : VARCHAR(255) <<NOT NULL>>
+    email : VARCHAR(255) <<NOT NULL, UNIQUE>>
+    password_hash : VARCHAR(255) <<NOT NULL>>
+    verified : BOOLEAN <<DEFAULT true>>
+    verification_token : VARCHAR(255)
+    password_reset_token : VARCHAR(255)
+    token_expiry : TIMESTAMP
+    created_at : TIMESTAMP <<NOT NULL>>
+}
+
+TABLE(teams) {
+    PK(id) : BIGINT <<PK>>
+    --
+    name : VARCHAR(255) <<NOT NULL>>
+    FK(owner_user_id) : BIGINT <<NOT NULL>>
+    invite_code : VARCHAR(8) <<UNIQUE>>
+    deleted : BOOLEAN <<DEFAULT false>>
+    created_at : TIMESTAMP <<NOT NULL>>
+}
+
+TABLE(team_members) {
+    PK(id) : BIGINT <<PK>>
+    --
+    FK(team_id) : BIGINT <<NOT NULL>>
+    FK(user_id) : BIGINT <<NOT NULL>>
+    role : VARCHAR(50) <<NOT NULL>>
+}
+
+TABLE(standups) {
+    PK(id) : BIGINT <<PK>>
+    --
+    FK(team_id) : BIGINT <<NOT NULL>>
+    FK(user_id) : BIGINT <<NOT NULL>>
+    date : DATE <<NOT NULL>>
+    yesterday_text : TEXT
+    today_text : TEXT
+    blockers_text : TEXT
+    created_at : TIMESTAMP <<NOT NULL>>
+}
+
+TABLE(standup_summaries) {
+    PK(id) : BIGINT <<PK>>
+    --
+    FK(team_id) : BIGINT <<NOT NULL>>
+    date : DATE <<NOT NULL>>
+    summary_text : TEXT
+    generated_by_ai : BOOLEAN <<NOT NULL>>
+    created_at : TIMESTAMP <<NOT NULL>>
+}
+
+TABLE(weekly_summaries) {
+    PK(id) : BIGINT <<PK>>
+    --
+    FK(team_id) : BIGINT <<NOT NULL>>
+    week_start_date : DATE <<NOT NULL>>
+    week_end_date : DATE <<NOT NULL>>
+    summary_text : TEXT
+    sent_to_owner : BOOLEAN <<DEFAULT false>>
+    created_at : TIMESTAMP <<NOT NULL>>
+}
+
+' Relationships
+users ||--o{ teams : "owns"
+users ||--o{ team_members : "joins"
+users ||--o{ standups : "submits"
+
+teams ||--o{ team_members : "has"
+teams ||--o{ standups : "contains"
+teams ||--o{ standup_summaries : "has"
+teams ||--o{ weekly_summaries : "has"
+
+note right of users
+  <b>User</b> is the core entity
+  representing a person who
+  can own teams, join teams,
+  and submit standups.
+end note
+
+note right of teams
+  <b>Team</b> represents a group
+  where members share their
+  daily standup updates.
+  Has a unique invite code.
+end note
+
+note bottom of standups
+  <b>Standup</b> captures daily
+  updates with yesterday's work,
+  today's plan, and blockers.
+end note
+
+note bottom of standup_summaries
+  <b>Daily Summary</b> provides
+  AI-generated or manual summaries
+  of team standups for a given day.
+end note
+
+note bottom of weekly_summaries
+  <b>Weekly Summary</b> aggregates
+  team progress on a weekly basis
+  and can be emailed to the owner.
+end note
+
+@enduml
