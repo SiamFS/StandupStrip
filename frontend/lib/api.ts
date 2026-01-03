@@ -17,6 +17,8 @@ class ApiClient {
         const token = this.getToken();
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
             ...options.headers,
         };
 
@@ -27,6 +29,7 @@ class ApiClient {
         const response = await fetch(url, {
             ...options,
             headers,
+            cache: "no-store", // Disable Next.js fetch caching
         });
 
         if (!response.ok) {

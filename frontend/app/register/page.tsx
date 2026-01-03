@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/Card";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const RegisterSchema = Yup.object().shape({
     name: Yup.string().required("Required"),
@@ -43,17 +44,20 @@ export default function RegisterPage() {
             try {
                 const { confirmPassword, ...data } = values;
                 await register(data);
-            } catch (err: any) {
-                setError(err.message || "Failed to register");
+                toast.success("Account created successfully!");
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Failed to register";
+                setError(message);
+                toast.error(message);
             }
         },
     });
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center text-primary">
+            <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                         Create an Account
                     </CardTitle>
                     <CardDescription className="text-center">
@@ -67,11 +71,12 @@ export default function RegisterPage() {
                             <Input
                                 id="name"
                                 placeholder="John Doe"
+                                className="transition-all duration-200"
                                 {...formik.getFieldProps("name")}
                                 disabled={formik.isSubmitting}
                             />
                             {formik.touched.name && formik.errors.name && (
-                                <div className="text-sm text-destructive">
+                                <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
                                     {formik.errors.name}
                                 </div>
                             )}
@@ -83,11 +88,12 @@ export default function RegisterPage() {
                                 id="email"
                                 type="email"
                                 placeholder="m@example.com"
+                                className="transition-all duration-200"
                                 {...formik.getFieldProps("email")}
                                 disabled={formik.isSubmitting}
                             />
                             {formik.touched.email && formik.errors.email && (
-                                <div className="text-sm text-destructive">
+                                <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
                                     {formik.errors.email}
                                 </div>
                             )}
@@ -98,11 +104,12 @@ export default function RegisterPage() {
                             <Input
                                 id="password"
                                 type="password"
+                                className="transition-all duration-200"
                                 {...formik.getFieldProps("password")}
                                 disabled={formik.isSubmitting}
                             />
                             {formik.touched.password && formik.errors.password && (
-                                <div className="text-sm text-destructive">
+                                <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
                                     {formik.errors.password}
                                 </div>
                             )}
@@ -113,18 +120,19 @@ export default function RegisterPage() {
                             <Input
                                 id="confirmPassword"
                                 type="password"
+                                className="transition-all duration-200"
                                 {...formik.getFieldProps("confirmPassword")}
                                 disabled={formik.isSubmitting}
                             />
                             {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-                                <div className="text-sm text-destructive">
+                                <div className="text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1">
                                     {formik.errors.confirmPassword}
                                 </div>
                             )}
                         </div>
 
                         {error && (
-                            <div className="text-sm text-destructive font-medium text-center">
+                            <div className="text-sm text-destructive font-medium text-center animate-in fade-in-0">
                                 {error}
                             </div>
                         )}
@@ -137,7 +145,7 @@ export default function RegisterPage() {
                 <CardFooter className="flex justify-center">
                     <p className="text-sm text-muted-foreground">
                         Already have an account?{" "}
-                        <Link href="/login" className="text-primary hover:underline">
+                        <Link href="/login" className="text-primary hover:underline font-medium transition-colors">
                             Login
                         </Link>
                     </p>

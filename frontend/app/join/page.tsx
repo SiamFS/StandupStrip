@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -10,10 +10,12 @@ import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import { Team } from "@/lib/types";
-import { Users, Check, LogIn } from "lucide-react";
+import { Users, Check, LogIn, Search } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-export default function JoinTeamPage() {
+function JoinTeamContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user, isLoading: authLoading } = useAuth();
@@ -28,6 +30,7 @@ export default function JoinTeamPage() {
     const handleLookup = async () => {
         if (!code.trim()) {
             setError("Please enter an invite code");
+            toast.error("Please enter an invite code");
             return;
         }
         setError(null);
@@ -36,8 +39,11 @@ export default function JoinTeamPage() {
         try {
             const team = await ApiClient.get<Team>(ENDPOINTS.TEAMS.GET_BY_INVITE_CODE(code.trim().toUpperCase()));
             setTeamPreview(team);
-        } catch (err: any) {
-            setError(err.message || "Invalid invite code");
+            toast.success(`Found team: ${team.name}`);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Invalid invite code";
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -50,11 +56,14 @@ export default function JoinTeamPage() {
         try {
             await ApiClient.post(ENDPOINTS.TEAMS.JOIN_BY_CODE(code.trim().toUpperCase()), {});
             setSuccess(`Successfully joined ${teamPreview.name}!`);
+            toast.success(`Successfully joined ${teamPreview.name}!`);
             setTimeout(() => {
                 router.push(`/teams/${teamPreview.id}`);
             }, 1500);
-        } catch (err: any) {
-            setError(err.message || "Failed to join team");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to join team";
+            setError(message);
+            toast.error(message);
         } finally {
             setJoining(false);
         }
@@ -63,8 +72,8 @@ export default function JoinTeamPage() {
     // Redirect to login if not authenticated
     if (!authLoading && !user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background p-4">
-                <Card className="w-full max-w-md">
+            <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+                <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500">
                     <CardHeader className="text-center">
                         <CardTitle>Login Required</CardTitle>
                         <CardDescription>You need to be logged in to join a team</CardDescription>
@@ -76,8 +85,8 @@ export default function JoinTeamPage() {
                             </Button>
                         </Link>
                         <p className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{" "}
-                            <Link href="/register" className="text-primary hover:underline">
+                            Don&apos;t have an account?{" "}
+                            <Link href="/register" className="text-primary hover:underline font-medium">
                                 Register
                             </Link>
                         </p>
@@ -88,8 +97,8 @@ export default function JoinTeamPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-            <Card className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+            <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Users className="h-6 w-6 text-primary" />
@@ -99,7 +108,7 @@ export default function JoinTeamPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {success ? (
-                        <div className="text-center space-y-4">
+                        <div className="text-center space-y-4 animate-in fade-in-0 zoom-in-95 duration-300">
                             <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
                                 <Check className="h-8 w-8 text-green-600" />
                             </div>
@@ -116,23 +125,27 @@ export default function JoinTeamPage() {
                                         placeholder="e.g. ABC12345"
                                         value={code}
                                         onChange={(e) => setCode(e.target.value.toUpperCase())}
-                                        className="font-mono tracking-wider"
+                                        className="font-mono tracking-wider transition-all duration-200"
                                         maxLength={8}
                                     />
                                     <Button onClick={handleLookup} disabled={loading || !code.trim()}>
-                                        {loading ? "Looking up..." : "Lookup"}
+                                        <Search className="mr-2 h-4 w-4" />
+                                        {loading ? "Looking..." : "Lookup"}
                                     </Button>
                                 </div>
                             </div>
 
                             {error && (
-                                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md animate-in fade-in-0 slide-in-from-top-1">
                                     {error}
                                 </div>
                             )}
 
                             {teamPreview && (
-                                <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+                                <div className={cn(
+                                    "border rounded-lg p-4 bg-muted/30 space-y-3",
+                                    "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                                )}>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Team Name</p>
                                         <p className="font-medium text-lg">{teamPreview.name}</p>
@@ -144,7 +157,7 @@ export default function JoinTeamPage() {
                             )}
 
                             <div className="text-center pt-4 border-t">
-                                <Link href="/teams" className="text-sm text-muted-foreground hover:text-primary">
+                                <Link href="/teams" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                                     ← Back to Teams
                                 </Link>
                             </div>
@@ -153,5 +166,17 @@ export default function JoinTeamPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function JoinTeamPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-muted/40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <JoinTeamContent />
+        </Suspense>
     );
 }

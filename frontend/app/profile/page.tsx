@@ -1,39 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { User, Mail, Save, Check } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { User, Mail, Save } from "lucide-react";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
-    const { user, isLoading: authLoading } = useAuth();
-    const [name, setName] = useState(user?.name || "");
+    const { user, isLoading: authLoading, updateUser } = useAuth();
+    const [name, setName] = useState("");
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        if (user) {
+            setName(user.name || "");
+        }
+    }, [user]);
 
     const handleSave = async () => {
         if (!name.trim()) {
-            setError("Name is required");
+            toast.error("Name is required");
             return;
         }
         if (!user) return;
 
         setSaving(true);
-        setError(null);
-        setSuccess(false);
         try {
             await ApiClient.put(ENDPOINTS.USERS.UPDATE(user.id), { name: name.trim() });
-            setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
-        } catch (err: any) {
-            setError(err.message || "Failed to update profile");
+            updateUser({ name: name.trim() });
+            toast.success("Profile updated successfully!");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to update profile";
+            toast.error(message);
         } finally {
             setSaving(false);
         }
@@ -47,7 +55,7 @@ export default function ProfilePage() {
         return null;
     }
 
-    if (authLoading) {
+    if (authLoading || !mounted) {
         return (
             <Layout>
                 <div className="flex h-[60vh] items-center justify-center">
@@ -62,32 +70,21 @@ export default function ProfilePage() {
 
     return (
         <Layout>
-            <div className="max-w-2xl mx-auto space-y-6">
+            <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
                 <div>
                     <h1 className="text-2xl font-bold">Profile Settings</h1>
                     <p className="text-muted-foreground">Manage your account information</p>
                 </div>
 
-                {error && (
-                    <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="bg-green-100 text-green-700 p-3 rounded-md text-sm flex items-center gap-2">
-                        <Check className="h-4 w-4" />
-                        Profile updated successfully!
-                    </div>
-                )}
-
                 {/* Profile Info */}
-                <Card>
+                <Card className="hover:shadow-lg transition-all duration-200">
                     <CardHeader>
                         <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl">
-                                {user?.name?.charAt(0).toUpperCase()}
-                            </div>
+                            <Avatar className="h-16 w-16">
+                                <AvatarFallback className="bg-primary/20 text-primary font-bold text-2xl">
+                                    {user?.name?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
                             <div>
                                 <CardTitle>{user?.name}</CardTitle>
                                 <CardDescription className="flex items-center gap-1 mt-1">
@@ -100,7 +97,7 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Edit Profile */}
-                <Card>
+                <Card className="hover:shadow-lg transition-all duration-200">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <User className="h-5 w-5" />
@@ -116,10 +113,11 @@ export default function ProfilePage() {
                                 type="email"
                                 value={user?.email || ""}
                                 disabled
-                                className="bg-muted"
+                                className="bg-muted transition-all duration-200"
                             />
                             <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                         </div>
+                        <Separator />
                         <div className="space-y-2">
                             <Label htmlFor="name">Display Name</Label>
                             <Input
@@ -127,6 +125,7 @@ export default function ProfilePage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Enter your name"
+                                className="transition-all duration-200"
                             />
                         </div>
                     </CardContent>
@@ -139,7 +138,7 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Account Info */}
-                <Card>
+                <Card className="hover:shadow-lg transition-all duration-200">
                     <CardHeader>
                         <CardTitle>Account</CardTitle>
                         <CardDescription>Your account details</CardDescription>

@@ -10,30 +10,40 @@ import {
     User,
     LogOut,
     Menu,
-    X,
-    FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 
 interface LayoutProps {
     children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
     const { user, logout } = useAuth();
-
-    // Protected page layout
+    const [mounted, setMounted] = useState(false);
+    const [sheetOpen, setSheetOpen] = useState(false);
 
     const navItems = [
-        { name: "Dashboard", href: "/", icon: LayoutDashboard },
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { name: "Teams", href: "/teams", icon: Users },
         { name: "Profile", href: "/profile", icon: User },
     ];
-
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -43,89 +53,117 @@ export default function Layout({ children }: LayoutProps) {
         return null;
     }
 
-    return (
-        <div className="min-h-screen bg-background flex">
-            {/* Mobile Sidebar Overlay */}
-            {isSidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                    onClick={() => setIsSidebarOpen(false)}
-                />
+    const SidebarContent = () => (
+        <div className="flex flex-col h-full">
+            {/* User Info */}
+            {user && (
+                <div className="mb-6 px-2">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                                {user.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Welcome,</p>
+                            <p className="font-medium truncate max-w-[140px]">{user.name}</p>
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {/* Sidebar */}
-            <aside
-                className={cn(
-                    "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto",
-                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                )}
-            >
-                <div className="h-16 flex items-center px-6 border-b">
-                    <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                        StandUpStrip
-                    </span>
-                    <button
-                        onClick={() => setIsSidebarOpen(false)}
-                        className="ml-auto lg:hidden"
-                    >
-                        <X className="h-6 w-6" />
-                    </button>
-                </div>
+            <Separator className="mb-4" />
 
-                <div className="p-4 space-y-2">
-                    {user && (
-                        <div className="mb-6 px-2">
-                            <p className="text-sm text-muted-foreground">Welcome,</p>
-                            <p className="font-medium truncate">{user.name}</p>
-                        </div>
-                    )}
-
+            {/* Navigation */}
+            <nav className="space-y-1 flex-1">
+                <TooltipProvider delayDuration={0}>
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = pathname === item.href;
+                        const isActive = pathname === item.href ||
+                            (item.href === "/dashboard" && pathname === "/");
 
                         return (
-                            <Link key={item.href} href={item.href}>
-                                <span className={cn(
-                                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground"
-                                        : "hover:bg-accent hover:text-accent-foreground"
-                                )}>
-                                    <Icon className="h-5 w-5" />
+                            <Tooltip key={item.href}>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        href={item.href}
+                                        onClick={() => setSheetOpen(false)}
+                                    >
+                                        <span className={cn(
+                                            "flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200",
+                                            isActive
+                                                ? "bg-primary text-primary-foreground shadow-sm"
+                                                : "hover:bg-accent hover:text-accent-foreground"
+                                        )}>
+                                            <Icon className="h-5 w-5" />
+                                            <span className="font-medium">{item.name}</span>
+                                        </span>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="lg:hidden">
                                     {item.name}
-                                </span>
-                            </Link>
+                                </TooltipContent>
+                            </Tooltip>
                         );
                     })}
-                </div>
+                </TooltipProvider>
+            </nav>
 
-                <div className="absolute bottom-4 left-0 right-0 p-4">
-                    <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={logout}
-                    >
-                        <LogOut className="h-5 w-5" />
-                        Sign Out
-                    </Button>
+            {/* Sign Out */}
+            <div className="pt-4">
+                <Separator className="mb-4" />
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+                    onClick={logout}
+                >
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                </Button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="min-h-screen bg-background flex">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 flex-col bg-card border-r">
+                <div className="h-16 flex items-center px-6 border-b">
+                    <span className="text-xl font-bold">
+                        StandUpStrip
+                    </span>
+                </div>
+                <div className="flex-1 p-4 overflow-y-auto">
+                    <SidebarContent />
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-h-screen">
+            <main className="flex-1 flex flex-col min-h-screen lg:pl-64">
                 {/* Mobile Header */}
-                <header className="h-16 border-b flex items-center px-4 lg:hidden bg-card">
-                    <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className=""
-                    >
-                        <Menu className="h-6 w-6" />
-                    </button>
-                    <span className="ml-4 font-semibold">StandUpStrip</span>
+                <header className="h-16 border-b flex items-center px-4 lg:hidden bg-card sticky top-0 z-40">
+                    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="mr-2">
+                                <Menu className="h-6 w-6" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-64 p-0">
+                            <SheetHeader className="h-16 flex items-center justify-start px-6 border-b">
+                                <SheetTitle className="text-xl font-bold">
+                                    StandUpStrip
+                                </SheetTitle>
+                            </SheetHeader>
+                            <div className="p-4 h-[calc(100%-4rem)]">
+                                <SidebarContent />
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                    <span className="font-semibold">StandUpStrip</span>
                 </header>
 
-                <div className="flex-1 p-6 lg:p-10 overflow-auto">
+                <div className="flex-1 p-6 lg:p-10 overflow-auto animate-in fade-in-0 duration-300">
                     {children}
                 </div>
             </main>
