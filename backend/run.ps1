@@ -9,6 +9,10 @@ if (Test-Path .env) {
         if ($_ -match '^([^=#]+)=(.*)$') {
             $name = $matches[1].Trim()
             $value = $matches[2].Trim()
+            # Remove surrounding quotes if present
+            if ($value -match '^"(.*)"$' -or $value -match "^'(.*)'$") {
+                $value = $matches[1]
+            }
             [System.Environment]::SetEnvironmentVariable($name, $value)
         }
     }
