@@ -28,23 +28,57 @@ A lightweight async standup tool with AI-powered summaries for remote teams.
 
 - Java 21 or higher
 - Maven 3.6+
+- PostgreSQL 14+ (for production) or use cloud database like NeonDB
+
+### Environment Setup
+
+1. **Create `.env` file** (copy from `.env.example`)
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure your `.env` file**
+   ```properties
+   # Database Mode: "cloud" for NeonDB or "local" for PostgreSQL
+   DB_STATUS=cloud
+   
+   # Cloud Database (NeonDB)
+   CLOUD_DATABASE_URL=jdbc:postgresql://your-host.neon.tech:5432/neondb?sslmode=require
+   CLOUD_DATABASE_USERNAME=your_username
+   CLOUD_DATABASE_PASSWORD=your_password
+   
+   # Local Database
+   LOCAL_DATABASE_URL=jdbc:postgresql://localhost:5432/standupdb
+   LOCAL_DATABASE_USERNAME=postgres
+   LOCAL_DATABASE_PASSWORD=your_password
+   
+   # JWT Secret (min 32 characters)
+   JWT_SECRET=your-super-secret-jwt-key-at-least-32-characters-long
+   
+   # Gemini AI
+   GEMINI_API_KEY=your_gemini_api_key
+   
+   # Gmail SMTP (for email verification)
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
+   
+   # Frontend URL
+   FRONTEND_URL=http://localhost:3000
+   ```
 
 ### Running Locally
 
 1. **Clone the repository**
    ```bash
-   cd standupmeet/backend
+   cd backend
    ```
 
-2. **Build the project**
+2. **Run the application**
    ```bash
-   mvn clean install
+   ./mvnw spring-boot:run
    ```
-
-3. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
+   
+   The `.env` file is automatically loaded on startup.
 
 The application will start on `http://localhost:8080`
 

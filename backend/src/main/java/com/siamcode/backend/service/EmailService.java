@@ -21,6 +21,14 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        log.info("==> Email Service Configuration:");
+        log.info("    mailSender: {}", mailSender != null ? "CONFIGURED" : "NOT CONFIGURED");
+        log.info("    fromEmail: {}", fromEmail.isEmpty() ? "NOT SET" : fromEmail);
+        log.info("    Status: {}", isConfigured() ? "READY" : "DISABLED");
+    }
+
     /**
      * Send a simple text email
      */

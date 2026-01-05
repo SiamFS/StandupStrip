@@ -31,18 +31,26 @@ public class AuthService {
         // Generate verification token
         String token = java.util.UUID.randomUUID().toString();
         User user = userService.findUserEntityById(userResponse.getId());
-        user.setVerified(false); // Set to false - user must verify email
         user.setVerificationToken(token);
         user.setTokenExpiry(java.time.LocalDateTime.now().plusHours(24));
-        userService.saveUser(user);
 
-        // Send verification email
-        try {
-            emailService.sendVerificationEmail(user.getEmail(), user.getName(), token);
-        } catch (Exception e) {
-            // Log error but don't fail registration
-            System.err.println("Failed to send verification email: " + e.getMessage());
+        // Send verification email - only require verification if email sends
+        // successfully
+        if (emailService.isConfigured()) {
+            try {
+                emailService.sendVerificationEmail(user.getEmail(), user.getName(), token);
+                user.setVerified(false); // Email sent - require verification
+                System.out.println("==> Verification email sent to: " + user.getEmail());
+            } catch (Exception e) {
+                user.setVerified(true); // Email failed - auto-verify for dev
+                System.err.println("==> Email failed, user auto-verified: " + e.getMessage());
+            }
+        } else {
+            user.setVerified(true); // Email not configured - auto-verify for dev
+            System.out.println("==> Email not configured, user auto-verified");
         }
+
+        userService.saveUser(user);
 
         String jwtToken = jwtUtil.generateToken(userResponse.getId());
         return new AuthResponse(jwtToken, userResponse);
