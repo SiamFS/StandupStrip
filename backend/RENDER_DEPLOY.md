@@ -68,38 +68,43 @@ Click **"Add Environment Variable"** for each:
 ### Database (6 variables)
 ```
 DB_STATUS = cloud
-CLOUD_DATABASE_URL = jdbc:postgresql://ep-billowing-wave-a1xwoegt-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
-CLOUD_DATABASE_USERNAME = neondb_owner
-CLOUD_DATABASE_PASSWORD = npg_RH4xpsXQCW6v
-DATABASE_URL = jdbc:postgresql://ep-billowing-wave-a1xwoegt-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
-DATABASE_USERNAME = neondb_owner
-DATABASE_PASSWORD = npg_RH4xpsXQCW6v
+CLOUD_DATABASE_URL = jdbc:postgresql://your-neon-host.aws.neon.tech:5432/neondb?sslmode=require
+CLOUD_DATABASE_USERNAME = your_neon_username
+CLOUD_DATABASE_PASSWORD = your_neon_password_here
+DATABASE_URL = jdbc:postgresql://your-neon-host.aws.neon.tech:5432/neondb?sslmode=require
+DATABASE_USERNAME = your_neon_username
+DATABASE_PASSWORD = your_neon_password_here
 ```
+> ⚠️ **Get from NeonDB Dashboard**: https://console.neon.tech/
 
 ### JWT (2 variables)
 ```
-JWT_SECRET = 5766oiEZP4MV8CgMZaDzYBxr6zLkTMU0
+JWT_SECRET = your-super-secret-jwt-key-at-least-32-characters-long
 JWT_EXPIRATION = 86400000
 ```
+> 💡 **Generate a secure random string** (32+ characters)
 
 ### Gemini AI (3 variables)
 ```
-GEMINI_API_KEY = AIzaSyCDGMgMiOyvpCHesELSm1O7R0rTxI2-SSo
+GEMINI_API_KEY = your_gemini_api_key_here
 GEMINI_API_URL = https://generativelanguage.googleapis.com/v1beta
 GEMINI_MODEL = gemini-2.0-flash-exp
 ```
+> ⚠️ **Get API Key from**: https://aistudio.google.com/apikey
 
 ### Email (2 variables)
 ```
-MAIL_USERNAME = siamferdous1@gmail.com
-MAIL_PASSWORD = lmvv ztbe kjsb mugk
+MAIL_USERNAME = your_email@gmail.com
+MAIL_PASSWORD = your_gmail_app_password_here
 ```
+> ⚠️ **Use Gmail App Password**, not your regular Gmail password
+> Generate at: https://myaccount.google.com/apppasswords
 
 ### Frontend (1 variable)
 ```
 FRONTEND_URL = http://localhost:3000
 ```
-*(Update after deploying frontend)*
+*(Update to your Vercel URL after deploying frontend)*
 
 ---
 
