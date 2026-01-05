@@ -1,0 +1,48 @@
+# Render.com Configuration
+# This file configures the backend service for Render deployment
+
+services:
+  - type: web
+    name: standupstrip-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: singapore  # Closest to your Neon DB (ap-southeast-1)
+    plan: free
+    envVars:
+      # Database Configuration (Neon DB)
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render dashboard
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      
+      # JWT Configuration
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: 86400000
+      
+      # Gemini AI
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_URL
+        value: https://generativelanguage.googleapis.com/v1beta
+      - key: GEMINI_MODEL
+        value: gemini-3-flash-preview
+      
+      # Email Configuration
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      
+      # Frontend URL (update after deploying frontend)
+      - key: FRONTEND_URL
+        sync: false
+      
+      # DB Status for cloud
+      - key: DB_STATUS
+        value: cloud
+    healthCheckPath: /hello
