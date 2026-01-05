@@ -44,12 +44,8 @@ export default function TeamDetailsPage() {
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<UserResponse[]>([]);
     const [standups, setStandups] = useState<StandupResponse[]>([]);
-    const [date, setDate] = useState<string>("");
+    const [date, setDate] = useState<string>(getLocalDateFormat()); // Initialize with today's date
     const [copied, setCopied] = useState(false);
-
-    useEffect(() => {
-        setDate(getLocalDateFormat());
-    }, []);
 
     const [loading, setLoading] = useState(true);
     const [standupsLoading, setStandupsLoading] = useState(false);
