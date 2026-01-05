@@ -16,8 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/teams")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:3001",
-        "http://localhost:5173" }, allowCredentials = "true")
 public class TeamController {
 
     private final TeamService teamService;

@@ -16,8 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/standups")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:3001",
-        "http://localhost:5173" }, allowCredentials = "true")
 public class StandupController {
 
     private final StandupService standupService;
