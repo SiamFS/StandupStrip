@@ -32,10 +32,10 @@ public class StandupSummaryService {
             throw new UnauthorizedException("You are not a member of this team");
         }
 
-        // Check if summary already exists
-        if (standupSummaryRepository.findByTeamIdAndDate(teamId, date).isPresent()) {
-            throw new BadRequestException("Summary already exists for this date. Retrieve it using GET endpoint.");
-        }
+        // Delete existing summary if present (for regeneration when new standups are
+        // added)
+        standupSummaryRepository.findByTeamIdAndDate(teamId, date)
+                .ifPresent(existingSummary -> standupSummaryRepository.delete(existingSummary));
 
         // Get all standups for this team and date
         List<Standup> standups = standupService.getStandupsForSummary(teamId, date);

@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build outputs
+target/
+build/
+
+# Logs
+*.log
+logs/
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+docs/
+
+# Test files
+src/test/
+
+# Unnecessary files
+*.bak
+*.tmp
+*.swp

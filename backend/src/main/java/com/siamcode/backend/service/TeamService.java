@@ -8,6 +8,7 @@ import com.siamcode.backend.dto.response.UserResponse;
 import com.siamcode.backend.entity.Team;
 import com.siamcode.backend.entity.TeamMember;
 import com.siamcode.backend.entity.User;
+import com.siamcode.backend.entity.InvitationStatus;
 import com.siamcode.backend.exception.BadRequestException;
 import com.siamcode.backend.exception.ResourceNotFoundException;
 import com.siamcode.backend.exception.UnauthorizedException;
@@ -18,6 +19,7 @@ import com.siamcode.backend.util.EntityMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final EntityMapper entityMapper;
 
     @Transactional
@@ -44,15 +47,19 @@ public class TeamService {
         ownerMember.setTeamId(savedTeam.getId());
         ownerMember.setUserId(ownerUserId);
         ownerMember.setRole("OWNER");
+        ownerMember.setStatus(InvitationStatus.ACCEPTED);
+        ownerMember.setInvitedAt(LocalDateTime.now());
+        ownerMember.setRespondedAt(LocalDateTime.now());
         teamMemberRepository.save(ownerMember);
 
         return entityMapper.toTeamResponse(savedTeam);
     }
 
     public List<TeamResponse> getTeamsByUser(Long userId) {
-        // Get all team IDs where user is a member
+        // Get all team IDs where user is an ACCEPTED member
         List<Long> teamIds = teamMemberRepository.findByUserId(userId)
                 .stream()
+                .filter(member -> member.getStatus() == InvitationStatus.ACCEPTED)
                 .map(TeamMember::getTeamId)
                 .collect(Collectors.toList());
 
@@ -126,16 +133,29 @@ public class TeamService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
 
-        // Check if already a member
+        // Check if already a member or has pending invitation
         if (teamMemberRepository.findByTeamIdAndUserId(teamId, user.getId()).isPresent()) {
-            throw new BadRequestException("User is already a member of this team");
+            throw new BadRequestException("User already has an invitation or is a member of this team");
         }
 
+        // Create PENDING invitation
         TeamMember member = new TeamMember();
         member.setTeamId(teamId);
         member.setUserId(user.getId());
         member.setRole(request.getRole() != null ? request.getRole() : "MEMBER");
+        member.setStatus(InvitationStatus.PENDING);
+        member.setInvitedAt(LocalDateTime.now());
         teamMemberRepository.save(member);
+
+        // Send invitation email
+        try {
+            User owner = userRepository.findById(team.getOwnerUserId()).orElse(null);
+            String ownerName = owner != null ? owner.getName() : "A teammate";
+            emailService.sendTeamInvitationEmail(user.getEmail(), team.getName(), team.getInviteCode(), ownerName);
+        } catch (Exception e) {
+            // Log but don't fail the add operation
+            System.err.println("Failed to send team invitation email: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -157,12 +177,17 @@ public class TeamService {
     }
 
     public boolean isTeamMember(Long userId, Long teamId) {
-        return teamMemberRepository.findByTeamIdAndUserId(teamId, userId).isPresent();
+        return teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .map(member -> member.getStatus() == InvitationStatus.ACCEPTED)
+                .orElse(false);
     }
 
     public List<UserResponse> getTeamMembers(Long teamId) {
-        // Find all team members
-        List<TeamMember> members = teamMemberRepository.findByTeamId(teamId);
+        // Find all ACCEPTED team members
+        List<TeamMember> members = teamMemberRepository.findByTeamId(teamId)
+                .stream()
+                .filter(member -> member.getStatus() == InvitationStatus.ACCEPTED)
+                .collect(Collectors.toList());
 
         if (members.isEmpty()) {
             return List.of();
@@ -180,6 +205,26 @@ public class TeamService {
         return users.stream()
                 .map(entityMapper::toUserResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get team member entities (for internal service use)
+     */
+    public List<User> getTeamMemberEntities(Long teamId) {
+        List<TeamMember> members = teamMemberRepository.findByTeamId(teamId)
+                .stream()
+                .filter(member -> member.getStatus() == InvitationStatus.ACCEPTED)
+                .collect(Collectors.toList());
+
+        if (members.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> userIds = members.stream()
+                .map(TeamMember::getUserId)
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(userIds);
     }
 
     public TeamResponse getTeamByInviteCode(String inviteCode) {
@@ -202,6 +247,66 @@ public class TeamService {
         member.setTeamId(team.getId());
         member.setUserId(userId);
         member.setRole("MEMBER");
+        member.setStatus(InvitationStatus.ACCEPTED);
+        member.setInvitedAt(LocalDateTime.now());
+        member.setRespondedAt(LocalDateTime.now());
         teamMemberRepository.save(member);
+    }
+
+    @Transactional
+    public void acceptInvitation(Long teamId, Long userId) {
+        TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invitation not found"));
+
+        if (member.getStatus() != InvitationStatus.PENDING) {
+            throw new BadRequestException("Invitation is not pending");
+        }
+
+        member.setStatus(InvitationStatus.ACCEPTED);
+        member.setRespondedAt(LocalDateTime.now());
+        teamMemberRepository.save(member);
+    }
+
+    @Transactional
+    public void rejectInvitation(Long teamId, Long userId) {
+        TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invitation not found"));
+
+        if (member.getStatus() != InvitationStatus.PENDING) {
+            throw new BadRequestException("Invitation is not pending");
+        }
+
+        member.setStatus(InvitationStatus.REJECTED);
+        member.setRespondedAt(LocalDateTime.now());
+        teamMemberRepository.save(member);
+    }
+
+    public List<UserResponse> getPendingInvitations(Long teamId, Long currentUserId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+
+        // Only owner can see pending invitations
+        if (!team.getOwnerUserId().equals(currentUserId)) {
+            throw new UnauthorizedException("Only team owner can view pending invitations");
+        }
+
+        List<TeamMember> pendingMembers = teamMemberRepository.findByTeamId(teamId)
+                .stream()
+                .filter(member -> member.getStatus() == InvitationStatus.PENDING)
+                .collect(Collectors.toList());
+
+        if (pendingMembers.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> userIds = pendingMembers.stream()
+                .map(TeamMember::getUserId)
+                .collect(Collectors.toList());
+
+        List<User> users = userRepository.findAllById(userIds);
+
+        return users.stream()
+                .map(entityMapper::toUserResponse)
+                .collect(Collectors.toList());
     }
 }

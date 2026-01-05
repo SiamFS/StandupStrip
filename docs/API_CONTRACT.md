@@ -13,7 +13,8 @@
 3. [Teams](#3-teams)
 4. [Standups](#4-standups)
 5. [Summaries](#5-summaries)
-6. [Error Responses](#6-error-responses)
+6. [Statistics](#6-statistics)
+7. [Error Responses](#7-error-responses)
 
 ---
 
@@ -87,6 +88,106 @@ Authenticate an existing user.
 | Status | Condition |
 |--------|-----------|
 | 401 | Invalid email or password |
+
+---
+
+### GET /api/auth/verify
+
+Verify user email address using token from email link.
+
+**Query Parameters:**
+| Parameter | Type | Required |
+|-----------|------|----------|
+| token | string | Yes |
+
+**Success Response (200 OK):**
+```
+Email verified successfully. You can now login.
+```
+
+**Error Responses:**
+| Status | Condition |
+|--------|-----------|
+| 400 | Invalid or expired token |
+
+---
+
+### POST /api/auth/forgot-password
+
+Initiate password reset. Sends reset email if user exists.
+
+**Query Parameters:**
+| Parameter | Type | Required |
+|-----------|------|----------|
+| email | string | Yes |
+
+**Success Response (200 OK):** Empty body (always returns 200 for security)
+
+---
+
+### POST /api/auth/reset-password
+
+Reset password using token from email link.
+
+**Query Parameters:**
+| Parameter | Type | Required |
+|-----------|------|----------|
+| token | string | Yes |
+| password | string | Yes |
+
+**Success Response (200 OK):** Empty body
+
+**Error Responses:**
+| Status | Condition |
+|--------|-----------|
+| 400 | Invalid or expired token |
+
+---
+
+### POST /api/auth/resend-verification
+
+Resend verification email to current authenticated user.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```
+Verification email sent successfully.
+```
+
+**Error Responses:**
+| Status | Condition |
+|--------|-----------|
+| 401 | Not authenticated |
+| 400 | Email already verified |
+
+---
+
+### POST /api/auth/verify-password
+
+Verify current user's password (used for sensitive operations like team deletion).
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "password": "currentPassword123"
+}
+```
+
+**Success Response (200 OK):** Empty body
+
+**Error Responses:**
+| Status | Condition |
+|--------|-----------|
+| 401 | Invalid password |
 
 ---
 
@@ -650,7 +751,74 @@ Authorization: Bearer <token>
 
 ---
 
-## 6. Error Responses
+### POST /api/summaries/teams/{teamId}/weekly
+
+Generate an AI-powered weekly summary for the team and email it to the owner.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Weekly summary generated and sent to your email!"
+}
+```
+
+**Error Responses:**
+| Status | Condition |
+|--------|-----------|
+| 400 | No standups in the last 7 days |
+| 403 | Not team owner |
+
+---
+
+## 6. Statistics
+
+### GET /api/stats/teams/{teamId}/heatmap
+
+Get participation heatmap data (GitHub-style contribution graph).
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+| Parameter | Type | Required | Default |
+|-----------|------|----------|---------|
+| months | integer | No | 6 |
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "date": "2026-01-02",
+    "count": 5,
+    "level": 2
+  },
+  {
+    "date": "2026-01-01", 
+    "count": 3,
+    "level": 1
+  }
+]
+```
+
+**Level Scale:**
+| Level | Count Range |
+|-------|-------------|
+| 0 | No standups |
+| 1 | 1-2 standups |
+| 2 | 3-4 standups |
+| 3 | 5-6 standups |
+| 4 | 7+ standups |
+
+---
+
+## 7. Error Responses
 
 ### Standard Error Format
 

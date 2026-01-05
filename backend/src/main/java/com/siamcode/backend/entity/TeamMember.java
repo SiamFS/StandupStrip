@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "team_members")
 @Data
@@ -24,4 +26,14 @@ public class TeamMember {
 
     @Column(nullable = false)
     private String role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private InvitationStatus status = InvitationStatus.ACCEPTED; // Default for existing members
+
+    @Column(name = "invited_at")
+    private LocalDateTime invitedAt;
+
+    @Column(name = "responded_at")
+    private LocalDateTime respondedAt;
 }

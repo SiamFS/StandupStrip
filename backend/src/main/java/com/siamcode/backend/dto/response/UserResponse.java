@@ -12,5 +12,6 @@ public class UserResponse {
     private Long id;
     private String name;
     private String email;
+    private Boolean verified;
     private LocalDateTime createdAt;
 }
