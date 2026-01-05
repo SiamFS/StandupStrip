@@ -46,5 +46,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
     CMD wget -q --spider http://localhost:8080/hello || exit 1
 
 # Run the application
-# Render.com sets PORT environment variable
-ENTRYPOINT ["java", "-jar", "-Dserver.port=${PORT:-8080}", "app.jar"]
+# Render.com sets PORT environment variable dynamically
+ENTRYPOINT ["sh", "-c", "java -jar -Dserver.port=${PORT:-8080} app.jar"]
