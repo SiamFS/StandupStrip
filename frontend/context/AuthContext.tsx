@@ -9,6 +9,7 @@ interface User {
     id: number;
     email: string;
     name: string;
+    verified: boolean;
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
     login: (data: any) => Promise<void>;
     register: (data: any) => Promise<void>;
     logout: () => void;
+    updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,12 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("token", authToken);
             setToken(authToken);
 
-            // Backend returns { token, user: { id, email, name } }
+            // Backend returns { token, user: { id, email, name, verified } }
             if (response.user) {
-                const userObj = {
+                const userObj: User = {
                     id: response.user.id,
                     email: response.user.email,
-                    name: response.user.name
+                    name: response.user.name,
+                    verified: response.user.verified ?? false
                 };
                 localStorage.setItem("user", JSON.stringify(userObj));
                 setUser(userObj);
@@ -87,12 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("token", authToken);
             setToken(authToken);
 
-            // Backend returns { token, user: { id, email, name } }
+            // Backend returns { token, user: { id, email, name, verified } }
             if (response.user) {
-                const userObj = {
+                const userObj: User = {
                     id: response.user.id,
                     email: response.user.email,
-                    name: response.user.name
+                    name: response.user.name,
+                    verified: response.user.verified ?? false
                 };
                 localStorage.setItem("user", JSON.stringify(userObj));
                 setUser(userObj);
@@ -114,8 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push("/login");
     };
 
+    const updateUser = (userData: Partial<User>) => {
+        if (!user) return;
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -4,6 +4,8 @@ export const ENDPOINTS = {
     AUTH: {
         LOGIN: "/api/auth/login",
         REGISTER: "/api/auth/register",
+        VERIFY_PASSWORD: "/api/auth/verify-password",
+        RESEND_VERIFICATION: "/api/auth/resend-verification",
     },
     USERS: {
         GET_BY_ID: (id: number) => `/api/users/${id}`,
@@ -34,5 +36,19 @@ export const ENDPOINTS = {
         GET_BY_DATE: (teamId: number, date: string) => `/api/summaries/teams/${teamId}?date=${date}`,
         GET_BY_RANGE: (teamId: number, startDate: string, endDate: string) =>
             `/api/summaries/teams/${teamId}/range?startDate=${startDate}&endDate=${endDate}`,
+    },
+    STATS: {
+        HEATMAP: (teamId: number) => `/api/stats/teams/${teamId}/heatmap`,
+    },
+    WEEKLY_SUMMARIES: {
+        GENERATE: (teamId: number) => `/api/weekly-summaries/teams/${teamId}/generate`,
+        GET_ALL: (teamId: number) => `/api/weekly-summaries/teams/${teamId}`,
+        GET_LATEST: (teamId: number) => `/api/weekly-summaries/teams/${teamId}/latest`,
+    },
+    REMINDERS: {
+        SEND_TO_MEMBER: (teamId: number, userId: number) =>
+            `/api/reminders/teams/${teamId}/members/${userId}`,
+        SEND_TO_ALL_PENDING: (teamId: number) =>
+            `/api/reminders/teams/${teamId}/all-pending`,
     },
 };

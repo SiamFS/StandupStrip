@@ -14,4 +14,8 @@ public interface StandupRepository extends JpaRepository<Standup, Long> {
     List<Standup> findByTeamIdAndDateBetween(Long teamId, LocalDate startDate, LocalDate endDate);
 
     Optional<Standup> findByTeamIdAndUserIdAndDate(Long teamId, Long userId, LocalDate date);
+
+    @org.springframework.data.jpa.repository.Query("SELECT s.date, COUNT(s) FROM Standup s WHERE s.teamId = :teamId AND s.date >= :startDate GROUP BY s.date")
+    List<Object[]> countDailyStandupsByTeamId(@org.springframework.data.repository.query.Param("teamId") Long teamId,
+            @org.springframework.data.repository.query.Param("startDate") LocalDate startDate);
 }

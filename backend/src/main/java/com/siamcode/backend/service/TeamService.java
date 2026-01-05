@@ -28,6 +28,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final EntityMapper entityMapper;
 
     @Transactional
@@ -136,6 +137,16 @@ public class TeamService {
         member.setUserId(user.getId());
         member.setRole(request.getRole() != null ? request.getRole() : "MEMBER");
         teamMemberRepository.save(member);
+
+        // Send invitation email
+        try {
+            User owner = userRepository.findById(team.getOwnerUserId()).orElse(null);
+            String ownerName = owner != null ? owner.getName() : "A teammate";
+            emailService.sendTeamInvitationEmail(user.getEmail(), team.getName(), team.getInviteCode(), ownerName);
+        } catch (Exception e) {
+            // Log but don't fail the add operation
+            System.err.println("Failed to send team invitation email: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -180,6 +191,23 @@ public class TeamService {
         return users.stream()
                 .map(entityMapper::toUserResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get team member entities (for internal service use)
+     */
+    public List<User> getTeamMemberEntities(Long teamId) {
+        List<TeamMember> members = teamMemberRepository.findByTeamId(teamId);
+
+        if (members.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> userIds = members.stream()
+                .map(TeamMember::getUserId)
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(userIds);
     }
 
     public TeamResponse getTeamByInviteCode(String inviteCode) {

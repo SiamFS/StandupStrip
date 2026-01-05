@@ -3,8 +3,10 @@ package com.siamcode.backend.service;
 import com.siamcode.backend.dto.request.CreateStandupRequest;
 import com.siamcode.backend.dto.response.StandupResponse;
 import com.siamcode.backend.entity.Standup;
+import com.siamcode.backend.entity.Team;
 import com.siamcode.backend.entity.User;
 import com.siamcode.backend.exception.BadRequestException;
+import com.siamcode.backend.repository.TeamRepository;
 import com.siamcode.backend.exception.ResourceNotFoundException;
 import com.siamcode.backend.exception.UnauthorizedException;
 import com.siamcode.backend.repository.StandupRepository;
@@ -24,6 +26,8 @@ public class StandupService {
     private final StandupRepository standupRepository;
     private final UserRepository userRepository;
     private final TeamService teamService;
+    private final TeamRepository teamRepository;
+    private final EmailService emailService;
     private final EntityMapper entityMapper;
 
     @Transactional
@@ -50,6 +54,23 @@ public class StandupService {
 
         Standup savedStandup = standupRepository.save(standup);
         String userName = getUserName(userId);
+
+        // Check for blockers and send email alert
+        if (request.getBlockersText() != null && !request.getBlockersText().trim().isEmpty()) {
+            try {
+                Team team = teamRepository.findById(teamId).orElse(null);
+                if (team != null) {
+                    User owner = userRepository.findById(team.getOwnerUserId()).orElse(null);
+                    if (owner != null) {
+                        emailService.sendBlockerAlert(owner.getEmail(), userName, team.getName(),
+                                request.getBlockersText());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send blocker alert: " + e.getMessage());
+            }
+        }
+
         return entityMapper.toStandupResponse(savedStandup, userName);
     }
 
@@ -74,6 +95,23 @@ public class StandupService {
 
         Standup updatedStandup = standupRepository.save(standup);
         String userName = getUserName(currentUserId);
+
+        // Check for blockers and send email alert
+        if (request.getBlockersText() != null && !request.getBlockersText().trim().isEmpty()) {
+            try {
+                Team team = teamRepository.findById(standup.getTeamId()).orElse(null);
+                if (team != null) {
+                    User owner = userRepository.findById(team.getOwnerUserId()).orElse(null);
+                    if (owner != null) {
+                        emailService.sendBlockerAlert(owner.getEmail(), userName, team.getName(),
+                                request.getBlockersText());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send blocker alert: " + e.getMessage());
+            }
+        }
+
         return entityMapper.toStandupResponse(updatedStandup, userName);
     }
 
@@ -125,6 +163,38 @@ public class StandupService {
 
     public List<Standup> getStandupsForSummary(Long teamId, LocalDate date) {
         return standupRepository.findByTeamIdAndDate(teamId, date);
+    }
+
+    public java.util.List<com.siamcode.backend.dto.response.HeatmapStatsResponse> getHeatmapStats(Long teamId,
+            Long currentUserId) {
+        // Verify user is a team member
+        if (!teamService.isTeamMember(currentUserId, teamId)) {
+            throw new UnauthorizedException("You are not a member of this team");
+        }
+
+        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+        List<Object[]> dailyCounts = standupRepository.countDailyStandupsByTeamId(teamId, oneYearAgo);
+
+        return dailyCounts.stream()
+                .map(row -> {
+                    LocalDate date = (LocalDate) row[0];
+                    Long count = (Long) row[1];
+                    int level = calculateLevel(count);
+                    return new com.siamcode.backend.dto.response.HeatmapStatsResponse(date, count, level);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private int calculateLevel(Long count) {
+        if (count <= 0)
+            return 0;
+        if (count <= 2)
+            return 1;
+        if (count <= 5)
+            return 2;
+        if (count <= 8)
+            return 3;
+        return 4;
     }
 
     private String getUserName(Long userId) {

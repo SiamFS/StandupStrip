@@ -14,6 +14,7 @@ public class EntityMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.isVerified(),
                 user.getCreatedAt());
     }
 
@@ -24,7 +25,8 @@ public class EntityMapper {
                 team.getId(),
                 team.getName(),
                 team.getOwnerUserId(),
-                team.getCreatedAt());
+                team.getCreatedAt(),
+                team.getInviteCode());
     }
 
     public StandupResponse toStandupResponse(Standup standup, String userName) {
