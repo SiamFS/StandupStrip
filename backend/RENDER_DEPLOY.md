@@ -1,249 +1,227 @@
-# Render.com Deployment Guide for StandUpStrip
+# 🚀 Render.com Deployment - Complete Guide
 
-## Prerequisites
+## ✅ Prerequisites Checklist
 
-Before deploying, ensure you have:
+Before starting, ensure you have:
 
-- ✅ GitHub repository with your code
-- ✅ NeonDB database created (https://console.neon.tech/)
-- ✅ Gemini API key (https://aistudio.google.com/apikey)
-- ✅ Gmail App Password for email verification
+- [x] Code pushed to GitHub (`git push origin main`)
+- [x] GitHub account
+- [x] NeonDB credentials ready
+- [x] Gemini API key
+- [x] Gmail app password
 
 ---
 
-## Step-by-Step Deployment
+## Step 1: Sign Up for Render
 
-### Step 1: Prepare Your Repository
-
-1. **Commit all changes** to your GitHub repository
-2. **Push to GitHub**:
-   ```bash
-   git add .
-   git commit -m "feat: prepare for Render deployment"
-   git push origin main
-   ```
-
-### Step 2: Create Render Account
-
-1. Go to [Render.com](https://render.com/)
-2. Sign up with GitHub
+1. Go to **https://dashboard.render.com/register**
+2. Click **"Sign up with GitHub"**
 3. Authorize Render to access your repositories
 
-### Step 3: Deploy Backend Service
+---
 
-1. **Go to Render Dashboard**: https://dashboard.render.com/
-2. Click **"New +"** → **"Web Service"**
-3. **Connect Repository**:
-   - Find and select your repository
-   - Click "Connect"
+## Step 2: Create New Web Service
 
-4. **Configure Service**:
-   | Setting | Value |
-   |---------|-------|
-   | **Name** | `standupstrip-backend` |
-   | **Root Directory** | `backend` |
-   | **Environment** | `Docker` |
-   | **Region** | `Singapore` (closest to NeonDB) |
-   | **Branch** | `main` |
-   | **Plan** | `Free` |
-
-5. **Add Environment Variables** (click "Advanced" → "Add Environment Variable"):
-
-   **Database Configuration:**
-   ```
-   DB_STATUS = cloud
-   
-   CLOUD_DATABASE_URL = jdbc:postgresql://your-neon-host.neon.tech:5432/neondb?sslmode=require
-   CLOUD_DATABASE_USERNAME = neondb_owner
-   CLOUD_DATABASE_PASSWORD = your_neon_password
-   
-   DATABASE_URL = jdbc:postgresql://your-neon-host.neon.tech:5432/neondb?sslmode=require
-   DATABASE_USERNAME = neondb_owner
-   DATABASE_PASSWORD = your_neon_password
-   ```
-
-   **JWT Configuration:**
-   ```
-   JWT_SECRET = your-super-secret-jwt-key-at-least-32-characters-long
-   JWT_EXPIRATION = 86400000
-   ```
-
-   **Gemini AI:**
-   ```
-   GEMINI_API_KEY = your_gemini_api_key
-   GEMINI_API_URL = https://generativelanguage.googleapis.com/v1beta
-   GEMINI_MODEL = gemini-2.0-flash-exp
-   ```
-
-   **Email (Gmail SMTP):**
-   ```
-   MAIL_USERNAME = your_email@gmail.com
-   MAIL_PASSWORD = your_gmail_app_password
-   ```
-
-   **Frontend URL:**
-   ```
-   FRONTEND_URL = https://your-frontend-url.vercel.app
-   ```
-   *(Update this after deploying frontend)*
-
-6. **Click "Create Web Service"**
-
-7. **Wait for deployment** (~5-10 minutes for first build)
-
-### Step 4: Verify Deployment
-
-1. **Check build logs** in Render dashboard
-2. **Test health endpoint**:
-   ```bash
-   curl https://standupstrip-backend.onrender.com/hello
-   ```
-   
-   Expected response:
-   ```json
-   {
-     "status": "healthy",
-     "message": "Hello from StandUpStrip API! 👋",
-     "timestamp": "2026-01-05T..."
-   }
-   ```
-
-3. **Test registration endpoint**:
-   ```bash
-   curl -X POST https://standupstrip-backend.onrender.com/api/auth/register \
-     -H "Content-Type: application/json" \
-     -d '{
-       "name": "Test User",
-       "email": "test@example.com",
-       "password": "password123"
-     }'
-   ```
+1. In Render Dashboard, click **"New +"** (top right)
+2. Select **"Web Service"**
+3. Choose **"Build and deploy from a Git repository"**
+4. Click **"Next"**
 
 ---
 
-## Important Notes
+## Step 3: Connect Repository
 
-### Free Tier Limitations
-
-⚠️ **Render Free Tier:**
-- Services spin down after **15 minutes** of inactivity
-- First request after spin-down takes **30-60 seconds** (cold start)
-- 750 hours/month free (enough for 1 service running 24/7)
-
-### Database Connection
-
-- Ensure your NeonDB allows connections from Render
-- Use `sslmode=require` in connection string
-- NeonDB free tier: 0.5 GB storage, 1 compute unit
-
-### Environment Variables
-
-- **Never commit** `.env` file to Git
-- Set all sensitive values in Render dashboard
-- Update `FRONTEND_URL` after deploying frontend
+1. Find your repository in the list
+2. Click **"Connect"** next to it
+3. If not visible, click **"Configure account"** to grant access
 
 ---
 
-## Troubleshooting
+## Step 4: Configure Service
 
-### Build Fails
+Fill in these fields:
 
-**Error: "Maven build failed"**
+| Field | Value | Notes |
+|-------|-------|-------|
+| **Name** | `standupstrip-backend` | Your service URL will be `standupstrip-backend.onrender.com` |
+| **Region** | `Singapore` | Closest to NeonDB (ap-southeast-1) |
+| **Branch** | `main` | Auto-deploys on push to this branch |
+| **Root Directory** | `backend` | ⚠️ IMPORTANT: Set this! |
+| **Language** | `Docker` | Select from dropdown |
+| **Dockerfile Path** | `backend/Dockerfile` | Path relative to repo root |
+
+---
+
+## Step 5: Choose Instance Type
+
+- Select **"Free"** plan
+- Note: Free services spin down after 15 min inactivity
+
+---
+
+## Step 6: Add Environment Variables
+
+Click **"Advanced"** → Scroll to **"Environment Variables"**
+
+Click **"Add Environment Variable"** for each:
+
+### Database (6 variables)
+```
+DB_STATUS = cloud
+CLOUD_DATABASE_URL = jdbc:postgresql://ep-billowing-wave-a1xwoegt-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+CLOUD_DATABASE_USERNAME = neondb_owner
+CLOUD_DATABASE_PASSWORD = npg_RH4xpsXQCW6v
+DATABASE_URL = jdbc:postgresql://ep-billowing-wave-a1xwoegt-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+DATABASE_USERNAME = neondb_owner
+DATABASE_PASSWORD = npg_RH4xpsXQCW6v
+```
+
+### JWT (2 variables)
+```
+JWT_SECRET = 5766oiEZP4MV8CgMZaDzYBxr6zLkTMU0
+JWT_EXPIRATION = 86400000
+```
+
+### Gemini AI (3 variables)
+```
+GEMINI_API_KEY = AIzaSyCDGMgMiOyvpCHesELSm1O7R0rTxI2-SSo
+GEMINI_API_URL = https://generativelanguage.googleapis.com/v1beta
+GEMINI_MODEL = gemini-2.0-flash-exp
+```
+
+### Email (2 variables)
+```
+MAIL_USERNAME = siamferdous1@gmail.com
+MAIL_PASSWORD = lmvv ztbe kjsb mugk
+```
+
+### Frontend (1 variable)
+```
+FRONTEND_URL = http://localhost:3000
+```
+*(Update after deploying frontend)*
+
+---
+
+## Step 7: Deploy!
+
+1. Click **"Create Web Service"** at the bottom
+2. Render starts building your Docker image
+3. Watch build logs in real-time
+
+**Build Timeline** (~5-10 minutes):
+```
+✅ Cloning repository...
+✅ Building Docker image (Stage 1: Maven)...
+✅ Building Docker image (Stage 2: Runtime)...
+✅ Starting service...
+✅ Health check passing (/hello endpoint)
+✅ Deploy live!
+```
+
+---
+
+## Step 8: Verify Deployment
+
+### Your Service URL:
+```
+https://standupstrip-backend.onrender.com
+```
+
+### Test Health Endpoint:
 ```bash
-# Check logs for specific error
-# Common fixes:
-# 1. Ensure Java 21 is specified in Dockerfile
-# 2. Check pom.xml for dependency issues
-# 3. Verify Dockerfile path is correct
+curl https://standupstrip-backend.onrender.com/hello
 ```
 
-### Database Connection Error
-
-**Error: "Could not connect to database"**
-```
-Solutions:
-1. Verify DATABASE_URL format includes ?sslmode=require
-2. Check NeonDB credentials are correct
-3. Ensure DB_STATUS=cloud is set
-4. Verify NeonDB is active (not suspended)
+**Expected Response:**
+```json
+{
+  "status": "healthy",
+  "message": "Hello from StandUpStrip API! 👋",
+  "timestamp": "2026-01-05T..."
+}
 ```
 
-### Application Crashes on Startup
-
-**Error: "Application failed to start"**
-```
-Check:
-1. JWT_SECRET is at least 32 characters
-2. All required env vars are set
-3. GEMINI_API_KEY is valid
-4. Email credentials are correct (app password, not regular password)
-```
-
-### Health Check Failing
-
-**Error: "Health check failed"**
-```
-1. Verify /hello endpoint works locally
-2. Check application logs in Render
-3. Ensure PORT environment variable is handled correctly
+### Test Registration:
+```bash
+curl -X POST https://standupstrip-backend.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "password123"
+  }'
 ```
 
 ---
 
-## Updating Deployment
+## 🎯 What Happens After Deployment
 
-### Auto-Deploy (Recommended)
-
-Render automatically deploys when you push to `main` branch:
+### Automatic Redeployment
+Every time you push to `main` branch:
 ```bash
 git add .
-git commit -m "fix: update feature"
+git commit -m "feat: update feature"
 git push origin main
 ```
+Render automatically rebuilds and redeploys! 🚀
 
-### Manual Deploy
-
-1. Go to Render dashboard
-2. Select your service
-3. Click "Manual Deploy" → "Deploy latest commit"
-
----
-
-## Monitoring
-
-### View Logs
-
-1. Go to Render dashboard
-2. Select your service
-3. Click "Logs" tab
-4. Filter by:
-   - **Build logs**: See Maven build output
-   - **Deploy logs**: See application startup
-   - **Runtime logs**: See application logs
-
-### Check Metrics
-
-1. Go to "Metrics" tab
-2. Monitor:
-   - CPU usage
-   - Memory usage
-   - Request count
-   - Response time
+### Monitoring
+- **Logs**: View real-time application logs
+- **Metrics**: Monitor CPU/Memory usage
+- **Events**: See deployment history
 
 ---
 
-## Next Steps
+## ⚠️ Important Notes
 
-1. ✅ Deploy backend to Render
-2. ⬜ Deploy frontend to Vercel/Netlify
-3. ⬜ Update `FRONTEND_URL` in Render env vars
-4. ⬜ Test email verification flow
-5. ⬜ Test full application workflow
+### Free Tier Behavior
+- **Spin down**: After 15 minutes of inactivity
+- **Cold start**: First request takes 30-60 seconds
+- **Hours**: 750 hours/month (enough for 24/7)
+
+### Database
+- Ensure NeonDB is active (not suspended)
+- Connection uses SSL (`sslmode=require`)
+
+### Environment Variables
+- Can be updated anytime in Dashboard → Environment
+- Changes trigger automatic redeploy
 
 ---
 
-## Support
+## 🐛 Troubleshooting
 
-- **Render Docs**: https://render.com/docs
-- **NeonDB Docs**: https://neon.tech/docs
-- **Issues**: Check application logs in Render dashboard
+### Build Fails
+**Check:**
+- Root Directory = `backend`
+- Dockerfile Path = `backend/Dockerfile`
+- Language = `Docker`
+
+### Database Connection Error
+**Fix:**
+- Verify NeonDB credentials
+- Check `sslmode=require` in URL
+- Ensure NeonDB is not suspended
+
+### Service Crashes
+**Check:**
+- All 14 environment variables are set
+- JWT_SECRET is 32+ characters
+- GEMINI_API_KEY is valid
+- Email password is app password (not regular password)
+
+---
+
+## 📊 Next Steps
+
+1. ✅ Backend deployed on Render
+2. ⬜ Deploy frontend to Vercel
+3. ⬜ Update `FRONTEND_URL` in Render
+4. ⬜ Test full application
+
+---
+
+**Your backend is now live! 🎉**
+
+Access it at: `https://standupstrip-backend.onrender.com`
