@@ -16,8 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/teams")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:3001",
-        "http://localhost:5173" }, allowCredentials = "true")
 public class TeamController {
 
     private final TeamService teamService;
@@ -94,5 +92,26 @@ public class TeamController {
         Long currentUserId = securityHelper.getCurrentUserId();
         teamService.joinTeamByCode(code, currentUserId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/{teamId}/invitations/accept")
+    public ResponseEntity<Void> acceptInvitation(@PathVariable Long teamId) {
+        Long currentUserId = securityHelper.getCurrentUserId();
+        teamService.acceptInvitation(teamId, currentUserId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{teamId}/invitations/reject")
+    public ResponseEntity<Void> rejectInvitation(@PathVariable Long teamId) {
+        Long currentUserId = securityHelper.getCurrentUserId();
+        teamService.rejectInvitation(teamId, currentUserId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{teamId}/pending-invitations")
+    public ResponseEntity<List<UserResponse>> getPendingInvitations(@PathVariable Long teamId) {
+        Long currentUserId = securityHelper.getCurrentUserId();
+        List<UserResponse> pendingInvitations = teamService.getPendingInvitations(teamId, currentUserId);
+        return ResponseEntity.ok(pendingInvitations);
     }
 }

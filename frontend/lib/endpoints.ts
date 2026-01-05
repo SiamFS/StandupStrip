@@ -1,4 +1,4 @@
-export const API_BASE_URL = "";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const ENDPOINTS = {
     AUTH: {
@@ -22,6 +22,9 @@ export const ENDPOINTS = {
         REMOVE_MEMBER: (teamId: number, userId: number) => `/api/teams/${teamId}/members/${userId}`,
         GET_BY_INVITE_CODE: (code: string) => `/api/teams/join/${code}`,
         JOIN_BY_CODE: (code: string) => `/api/teams/join/${code}`,
+        ACCEPT_INVITATION: (teamId: number) => `/api/teams/${teamId}/invitations/accept`,
+        REJECT_INVITATION: (teamId: number) => `/api/teams/${teamId}/invitations/reject`,
+        GET_PENDING_INVITATIONS: (teamId: number) => `/api/teams/${teamId}/pending-invitations`,
     },
     STANDUPS: {
         CREATE: (teamId: number) => `/api/standups/teams/${teamId}`,

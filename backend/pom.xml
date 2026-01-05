@@ -126,7 +126,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.siamcode.backend.HelloAplication</mainClass>
+					<mainClass>com.siamcode.backend.StandupApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -1,0 +1,71 @@
+# Render.com Configuration
+# This file configures both backend and frontend services for Render deployment
+
+services:
+  # Backend Service (Spring Boot)
+  - type: web
+    name: standupstrip-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: singapore  # Closest to Neon DB (ap-southeast-1)
+    plan: free
+    envVars:
+      # Database Mode
+      - key: DB_STATUS
+        value: cloud
+      
+      # Cloud Database Configuration (NeonDB)
+      - key: CLOUD_DATABASE_URL
+        sync: false  # Set in Render dashboard
+      - key: CLOUD_DATABASE_USERNAME
+        sync: false
+      - key: CLOUD_DATABASE_PASSWORD
+        sync: false
+      
+      # Active Database (set by StandupApplication based on DB_STATUS)
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      
+      # JWT Configuration
+      - key: JWT_SECRET
+        sync: false  # Must be at least 32 characters
+      - key: JWT_EXPIRATION
+        value: 86400000
+      
+      # Gemini AI
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_URL
+        value: https://generativelanguage.googleapis.com/v1beta
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash-exp
+      
+      # Email Configuration (Gmail SMTP)
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      
+      # Frontend URL (for email verification links)
+      - key: FRONTEND_URL
+        sync: false  # Set to your deployed frontend URL
+    
+    healthCheckPath: /hello
+    
+  # Frontend Service (Next.js) - Optional, configure separately
+  # - type: web
+  #   name: standupstrip-frontend
+  #   runtime: node
+  #   buildCommand: cd frontend && npm install && npm run build
+  #   startCommand: cd frontend && npm start
+  #   envVars:
+  #     - key: NEXT_PUBLIC_API_URL
+  #       fromService:
+  #         type: web
+  #         name: standupstrip-backend
+  #         property: host

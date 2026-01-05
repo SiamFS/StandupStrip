@@ -15,7 +15,8 @@ import {
     CardTitle,
 } from "@/components/ui/Card";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Zap } from "lucide-react";
 
@@ -27,6 +28,16 @@ const LoginSchema = Yup.object().shape({
 export default function LoginPage() {
     const { login } = useAuth();
     const [error, setError] = useState<string | null>(null);
+    const searchParams = useSearchParams();
+    const hasShownToast = useRef(false);
+
+    // Show success toast if redirected from registration (only once)
+    useEffect(() => {
+        if (searchParams.get("registered") === "true" && !hasShownToast.current) {
+            hasShownToast.current = true;
+            toast.success("Registration successful! Please login with your credentials.");
+        }
+    }, [searchParams]);
 
     const formik = useFormik({
         initialValues: {

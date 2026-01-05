@@ -12,8 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/weekly-summaries")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:3001",
-                "http://localhost:5173" }, allowCredentials = "true")
 public class WeeklySummaryController {
 
         private final WeeklySummaryService weeklySummaryService;
