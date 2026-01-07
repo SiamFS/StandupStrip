@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Users, ArrowRight, Shield, User, Search, Filter } from "lucide-react";
+import { Plus, Users, ArrowRight, Shield, User, Search, Filter, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
@@ -14,7 +14,6 @@ import { CreateTeamModal } from "@/components/CreateTeamModal";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 
 interface Team {
     id: number;
@@ -22,6 +21,12 @@ interface Team {
     description?: string;
     ownerUserId: number;
     createdAt: string;
+}
+
+interface TeamMember {
+    userId: number;
+    name: string;
+    email: string;
 }
 
 interface TeamWithMetadata extends Team {
@@ -42,7 +47,7 @@ export default function TeamsPage() {
             // Fetch member counts for each team to display richer info in the list
             const enrichedTeams = await Promise.all(
                 data.map(async (team) => {
-                    const members = await ApiClient.get<any[]>(ENDPOINTS.TEAMS.GET_MEMBERS(team.id));
+                    const members = await ApiClient.get<TeamMember[]>(ENDPOINTS.TEAMS.GET_MEMBERS(team.id));
                     return { ...team, memberCount: members.length };
                 })
             );
@@ -62,6 +67,7 @@ export default function TeamsPage() {
         } else if (!authLoading) {
             setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, authLoading]);
 
     if (!authLoading && !user) {
@@ -94,7 +100,7 @@ export default function TeamsPage() {
     const ownedTeams = filteredTeams.filter(t => t.ownerUserId === user?.id);
     const joinedTeams = filteredTeams.filter(t => t.ownerUserId !== user?.id);
 
-    const TeamListSection = ({ title, teamsList, icon: Icon }: { title: string, teamsList: TeamWithMetadata[], icon: any }) => (
+    const TeamListSection = ({ title, teamsList, icon: Icon }: { title: string, teamsList: TeamWithMetadata[], icon: React.ElementType }) => (
         <section className="space-y-4">
             <h2 className="text-lg font-semibold flex items-center gap-2 px-1">
                 <Icon className="h-5 w-5 text-muted-foreground" />
@@ -241,6 +247,3 @@ export default function TeamsPage() {
         </Layout>
     );
 }
-
-// Missing import fix
-import { LayoutDashboard } from "lucide-react";

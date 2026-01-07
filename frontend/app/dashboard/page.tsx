@@ -20,8 +20,20 @@ import ApiClient from "@/lib/api";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import { CreateTeamModal } from "@/components/CreateTeamModal";
-import { cn } from "@/lib/utils";
 import { getLocalDateFormat } from "@/lib/date";
+
+interface TeamMember {
+    userId: number;
+    name: string;
+    email: string;
+}
+
+interface StandupSubmission {
+    id: number;
+    userId: number;
+    teamId: number;
+    standupDate: string;
+}
 
 interface Team {
     id: number;
@@ -56,8 +68,8 @@ export default function Dashboard() {
 
             const statusPromises = teams.map(async (team) => {
                 const [standups, members] = await Promise.all([
-                    ApiClient.get<any[]>(ENDPOINTS.STANDUPS.GET_BY_DATE(team.id, today)),
-                    ApiClient.get<any[]>(ENDPOINTS.TEAMS.GET_MEMBERS(team.id))
+                    ApiClient.get<StandupSubmission[]>(ENDPOINTS.STANDUPS.GET_BY_DATE(team.id, today)),
+                    ApiClient.get<TeamMember[]>(ENDPOINTS.TEAMS.GET_MEMBERS(team.id))
                 ]);
 
                 return {
@@ -101,6 +113,7 @@ export default function Dashboard() {
         } else if (!authLoading) {
             setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, authLoading]);
 
     if (authLoading || (user && loading)) {

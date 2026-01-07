@@ -54,8 +54,9 @@ public class EmailService {
     }
 
     /**
-     * Send an HTML email
+     * Send an HTML email (asynchronously)
      */
+    @org.springframework.scheduling.annotation.Async
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
         if (mailSender == null || fromEmail.isEmpty()) {
             log.warn("Email service not configured. Skipping email to: {}", to);
@@ -75,13 +76,14 @@ public class EmailService {
             log.info("HTML email sent successfully to: {}", to);
         } catch (MessagingException e) {
             log.error("Failed to send HTML email to {}: {}", to, e.getMessage());
-            throw new RuntimeException("Failed to send email", e);
+            // Don't throw exception to prevent blocking the main thread
         }
     }
 
     /**
      * Send a welcome email to new users
      */
+    @org.springframework.scheduling.annotation.Async
     public void sendWelcomeEmail(String to, String userName) {
         String subject = "Welcome to StandUpStrip!";
         String htmlContent = """

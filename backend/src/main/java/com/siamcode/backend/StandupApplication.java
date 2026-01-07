@@ -14,6 +14,7 @@ import java.util.Scanner;
  * for local/cloud database configuration.
  */
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableAsync
 public class StandupApplication {
 
     public static void main(String[] args) {

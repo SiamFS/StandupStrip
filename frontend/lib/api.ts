@@ -26,49 +26,67 @@ class ApiClient {
             headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const response = await fetch(url, {
-            ...options,
-            headers,
-            cache: "no-store", // Disable Next.js fetch caching
-        });
+        // Add timeout of 30 seconds
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                if (typeof window !== "undefined") {
-                    // Unauthorized access handling
-                }
-            }
-            const errorText = await response.text();
-            let errorMessage = errorText || `API Request Failed: ${response.statusText}`;
-
-            try {
-                const errorJson = JSON.parse(errorText);
-                if (errorJson.message) {
-                    errorMessage = errorJson.message;
-                }
-            } catch (e) {
-                // Use default message if JSON parsing fails
-            }
-
-            throw new Error(errorMessage);
-        }
-
-        // Handle 204 No Content or empty response body
-        if (response.status === 204) {
-            return {} as T;
-        }
-
-        // Check if response body is empty before parsing
-        const text = await response.text();
-        if (!text || text.trim() === '') {
-            return {} as T;
-        }
-
-        // Try to parse as JSON, fallback to returning text as-is for plain text responses
         try {
-            return JSON.parse(text) as T;
-        } catch {
-            return text as T;
+            const response = await fetch(url, {
+                ...options,
+                headers,
+                cache: "no-store", // Disable Next.js fetch caching
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    if (typeof window !== "undefined") {
+                        // Unauthorized access handling
+                    }
+                }
+                const errorText = await response.text();
+                let errorMessage = errorText || `API Request Failed: ${response.statusText}`;
+
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    if (errorJson.message) {
+                        errorMessage = errorJson.message;
+                    }
+                } catch (e) {
+                    // Use default message if JSON parsing fails
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            // Handle 204 No Content or empty response body
+            if (response.status === 204) {
+                return {} as T;
+            }
+
+            // Check if response body is empty before parsing
+            const text = await response.text();
+            if (!text || text.trim() === '') {
+                return {} as T;
+            }
+
+            // Try to parse as JSON, fallback to returning text as-is for plain text responses
+            try {
+                return JSON.parse(text) as T;
+            } catch {
+                return text as T;
+            }
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            // Handle timeout specifically
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw new Error('Request timeout - the server took too long to respond. Please try again.');
+            }
+
+            throw error;
         }
     }
 

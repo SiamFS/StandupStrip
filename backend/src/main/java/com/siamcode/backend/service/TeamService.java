@@ -133,18 +133,25 @@ public class TeamService {
         User user = userRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
 
-        // Check if already a member or has pending invitation
-        if (teamMemberRepository.findByTeamIdAndUserId(teamId, user.getId()).isPresent()) {
-            throw new BadRequestException("User already has an invitation or is a member of this team");
-        }
+        // Check if already an ACCEPTED member (PENDING is okay - they can be
+        // re-invited)
+        teamMemberRepository.findByTeamIdAndUserId(teamId, user.getId()).ifPresent(existingMember -> {
+            if (existingMember.getStatus() == InvitationStatus.ACCEPTED) {
+                throw new BadRequestException("User is already a member of this team");
+            }
+            // If PENDING or REJECTED, we'll update the existing record below
+        });
 
-        // Create PENDING invitation
-        TeamMember member = new TeamMember();
+        // Create or update PENDING invitation
+        TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, user.getId())
+                .orElse(new TeamMember());
+
         member.setTeamId(teamId);
         member.setUserId(user.getId());
         member.setRole(request.getRole() != null ? request.getRole() : "MEMBER");
         member.setStatus(InvitationStatus.PENDING);
         member.setInvitedAt(LocalDateTime.now());
+        member.setRespondedAt(null); // Reset responded date
         teamMemberRepository.save(member);
 
         // Send invitation email
@@ -238,10 +245,17 @@ public class TeamService {
         Team team = teamRepository.findByInviteCodeAndDeletedFalse(inviteCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid invite code"));
 
-        // Check if already a member
-        if (teamMemberRepository.findByTeamIdAndUserId(team.getId(), userId).isPresent()) {
-            throw new BadRequestException("You are already a member of this team");
-        }
+        // Check if already an ACCEPTED member (PENDING means they have an invite to
+        // accept)
+        teamMemberRepository.findByTeamIdAndUserId(team.getId(), userId).ifPresent(existingMember -> {
+            if (existingMember.getStatus() == InvitationStatus.ACCEPTED) {
+                throw new BadRequestException("You are already a member of this team");
+            }
+            if (existingMember.getStatus() == InvitationStatus.PENDING) {
+                throw new BadRequestException(
+                        "You already have a pending invitation to this team. Please accept it from your dashboard.");
+            }
+        });
 
         TeamMember member = new TeamMember();
         member.setTeamId(team.getId());

@@ -15,7 +15,7 @@ import {
     CardTitle,
 } from "@/components/ui/Card";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Zap } from "lucide-react";
@@ -25,7 +25,7 @@ const LoginSchema = Yup.object().shape({
     password: Yup.string().required("Required"),
 });
 
-export default function LoginPage() {
+function LoginForm() {
     const { login } = useAuth();
     const [error, setError] = useState<string | null>(null);
     const searchParams = useSearchParams();
@@ -168,5 +168,29 @@ export default function LoginPage() {
                 </CardFooter>
             </Card>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen bg-background md:bg-muted/40">
+                <Card className="w-full h-full min-h-screen md:min-h-0 md:h-auto md:max-w-md border-none md:border rounded-none md:rounded-xl">
+                    <CardHeader className="space-y-4 text-center pt-12 md:pt-8">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                                <Zap className="h-8 w-8 text-white" />
+                            </div>
+                            <span className="text-xl font-bold tracking-tight">StandUpStrip</span>
+                        </div>
+                        <div className="space-y-1 pt-2">
+                            <CardTitle className="text-2xl font-bold">Loading...</CardTitle>
+                        </div>
+                    </CardHeader>
+                </Card>
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

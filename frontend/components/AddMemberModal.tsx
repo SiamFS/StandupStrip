@@ -49,7 +49,17 @@ export function AddMemberModal({ isOpen, onClose, onSuccess, teamId }: AddMember
                 onSuccess();
                 onClose();
             } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : "Failed to add member";
+                console.error("Failed to add member:", err);
+                let message = "Failed to add member";
+
+                if (err instanceof Error) {
+                    message = err.message;
+                    // Log additional details if available
+                    if ('response' in err) {
+                        console.error("Error response:", (err as any).response);
+                    }
+                }
+
                 setError(message);
                 toast.error(message);
             }
