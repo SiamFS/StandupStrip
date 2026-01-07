@@ -50,6 +50,13 @@ export default function LoginPage() {
             try {
                 await login(values);
                 toast.success("Welcome back!");
+
+                // Check for redirect parameter
+                const redirectPath = searchParams.get("redirect");
+                if (redirectPath) {
+                    window.location.href = redirectPath;
+                }
+                // Otherwise, login() will redirect to dashboard automatically
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : "Failed to login";
                 setError(message);

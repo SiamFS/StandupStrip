@@ -25,6 +25,7 @@ export const ENDPOINTS = {
         ACCEPT_INVITATION: (teamId: number) => `/api/teams/${teamId}/invitations/accept`,
         REJECT_INVITATION: (teamId: number) => `/api/teams/${teamId}/invitations/reject`,
         GET_PENDING_INVITATIONS: (teamId: number) => `/api/teams/${teamId}/pending-invitations`,
+        MY_PENDING_INVITATIONS: "/api/teams/my-pending-invitations",
     },
     STANDUPS: {
         CREATE: (teamId: number) => `/api/standups/teams/${teamId}`,

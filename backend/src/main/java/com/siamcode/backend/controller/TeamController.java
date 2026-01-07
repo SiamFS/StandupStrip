@@ -114,4 +114,11 @@ public class TeamController {
         List<UserResponse> pendingInvitations = teamService.getPendingInvitations(teamId, currentUserId);
         return ResponseEntity.ok(pendingInvitations);
     }
+
+    @GetMapping("/my-pending-invitations")
+    public ResponseEntity<List<TeamResponse>> getMyPendingInvitations() {
+        Long currentUserId = securityHelper.getCurrentUserId();
+        List<TeamResponse> pendingInvitations = teamService.getUserPendingInvitations(currentUserId);
+        return ResponseEntity.ok(pendingInvitations);
+    }
 }

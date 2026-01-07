@@ -129,8 +129,8 @@ public class TeamService {
             throw new UnauthorizedException("Only team owner can add members");
         }
 
-        // Find user by email
-        User user = userRepository.findByEmail(request.getEmail())
+        // Find user by email (case-insensitive)
+        User user = userRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
 
         // Check if already a member or has pending invitation
@@ -307,6 +307,29 @@ public class TeamService {
 
         return users.stream()
                 .map(entityMapper::toUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<TeamResponse> getUserPendingInvitations(Long userId) {
+        // Get all PENDING team memberships for this user
+        List<TeamMember> pendingMembers = teamMemberRepository.findByUserId(userId)
+                .stream()
+                .filter(member -> member.getStatus() == InvitationStatus.PENDING)
+                .collect(Collectors.toList());
+
+        if (pendingMembers.isEmpty()) {
+            return List.of();
+        }
+
+        // Get team IDs
+        List<Long> teamIds = pendingMembers.stream()
+                .map(TeamMember::getTeamId)
+                .collect(Collectors.toList());
+
+        // Fetch teams and filter out deleted ones
+        return teamRepository.findAllById(teamIds).stream()
+                .filter(team -> !team.isDeleted())
+                .map(entityMapper::toTeamResponse)
                 .collect(Collectors.toList());
     }
 }

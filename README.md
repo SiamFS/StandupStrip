@@ -124,7 +124,7 @@ FRONTEND_URL=http://localhost:3000
 
 ```bash
 # Run with PowerShell script (loads .env automatically)
-./run.ps1
+ .\mvnw spring-boot:run
 ```
 
 The backend will start at **http://localhost:8080**

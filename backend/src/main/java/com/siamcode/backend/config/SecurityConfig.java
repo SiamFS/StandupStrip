@@ -60,7 +60,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/verify-password", "/api/auth/resend-verification").authenticated()
-                        .requestMatchers("/", "/hello", "/health", "/api/auth/**", "/h2-console/**", "/error")
+                        .requestMatchers("/", "/hello", "/health", "/api/auth/**", "/h2-console/**", "/error",
+                                "/api/teams/join/*/preview")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

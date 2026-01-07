@@ -40,13 +40,19 @@ interface TeamStatus {
 export default function Dashboard() {
     const { user, isLoading: authLoading } = useAuth();
     const [teamsStatus, setTeamsStatus] = useState<TeamStatus[]>([]);
+    const [pendingInvitations, setPendingInvitations] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const fetchDashboardData = async () => {
         try {
-            const teams = await ApiClient.get<Team[]>(ENDPOINTS.TEAMS.LIST);
+            const [teams, invitations] = await Promise.all([
+                ApiClient.get<Team[]>(ENDPOINTS.TEAMS.LIST),
+                ApiClient.get<Team[]>(ENDPOINTS.TEAMS.MY_PENDING_INVITATIONS)
+            ]);
             const today = getLocalDateFormat();
+
+            setPendingInvitations(invitations);
 
             const statusPromises = teams.map(async (team) => {
                 const [standups, members] = await Promise.all([
@@ -68,6 +74,24 @@ export default function Dashboard() {
             console.error("Failed to fetch dashboard data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAcceptInvitation = async (teamId: number) => {
+        try {
+            await ApiClient.post(ENDPOINTS.TEAMS.ACCEPT_INVITATION(teamId), {});
+            fetchDashboardData(); // Refresh data
+        } catch (error) {
+            console.error("Failed to accept invitation", error);
+        }
+    };
+
+    const handleRejectInvitation = async (teamId: number) => {
+        try {
+            await ApiClient.post(ENDPOINTS.TEAMS.REJECT_INVITATION(teamId), {});
+            fetchDashboardData(); // Refresh data
+        } catch (error) {
+            console.error("Failed to reject invitation", error);
         }
     };
 
@@ -185,6 +209,39 @@ export default function Dashboard() {
                                         </CardContent>
                                     </Card>
                                 </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Pending Invitations Section */}
+                {pendingInvitations.length > 0 && (
+                    <section>
+                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <Users className="h-5 w-5 text-blue-500" />
+                            Pending Invitations
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {pendingInvitations.map((team) => (
+                                <Card key={team.id} className="border-blue-500/30 bg-blue-500/5">
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-lg">{team.name}</h3>
+                                            <div className="p-1 px-2 rounded bg-blue-500/20 text-blue-700 text-[10px] font-bold uppercase tracking-wider">
+                                                Invitation
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mb-4">You've been invited to join this team.</p>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={() => handleAcceptInvitation(team.id)} className="flex-1">
+                                                Accept
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={() => handleRejectInvitation(team.id)} className="flex-1">
+                                                Decline
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             ))}
                         </div>
                     </section>
