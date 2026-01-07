@@ -11,6 +11,10 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Service
 @Slf4j
 public class EmailService {
@@ -21,16 +25,20 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
+    // Dedicated thread pool for email sending - won't block HTTP threads
+    private final Executor emailExecutor = Executors.newFixedThreadPool(2);
+
     @jakarta.annotation.PostConstruct
     public void init() {
         log.info("==> Email Service Configuration:");
         log.info("    mailSender: {}", mailSender != null ? "CONFIGURED" : "NOT CONFIGURED");
         log.info("    fromEmail: {}", fromEmail.isEmpty() ? "NOT SET" : fromEmail);
         log.info("    Status: {}", isConfigured() ? "READY" : "DISABLED");
+        log.info("    Async: ENABLED (using dedicated thread pool)");
     }
 
     /**
-     * Send a simple text email
+     * Send a simple text email (synchronous - use for testing only)
      */
     public void sendSimpleEmail(String to, String subject, String body) {
         if (mailSender == null || fromEmail.isEmpty()) {
@@ -54,10 +62,9 @@ public class EmailService {
     }
 
     /**
-     * Send an HTML email (asynchronously)
+     * Internal method to actually send the HTML email (runs in background thread)
      */
-    @org.springframework.scheduling.annotation.Async
-    public void sendHtmlEmail(String to, String subject, String htmlContent) {
+    private void doSendHtmlEmail(String to, String subject, String htmlContent) {
         if (mailSender == null || fromEmail.isEmpty()) {
             log.warn("Email service not configured. Skipping email to: {}", to);
             return;
@@ -76,14 +83,22 @@ public class EmailService {
             log.info("HTML email sent successfully to: {}", to);
         } catch (MessagingException e) {
             log.error("Failed to send HTML email to {}: {}", to, e.getMessage());
-            // Don't throw exception to prevent blocking the main thread
+            // Don't throw - just log the error
         }
     }
 
     /**
-     * Send a welcome email to new users
+     * Send an HTML email ASYNCHRONOUSLY using dedicated thread pool.
+     * Returns immediately - email sends in background.
      */
-    @org.springframework.scheduling.annotation.Async
+    public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        log.info("Queuing HTML email to: {} (async)", to);
+        CompletableFuture.runAsync(() -> doSendHtmlEmail(to, subject, htmlContent), emailExecutor);
+    }
+
+    /**
+     * Send a welcome email to new users (async)
+     */
     public void sendWelcomeEmail(String to, String userName) {
         String subject = "Welcome to StandUpStrip!";
         String htmlContent = """
@@ -107,7 +122,7 @@ public class EmailService {
     }
 
     /**
-     * Send email verification link
+     * Send email verification link (async)
      */
     public void sendVerificationEmail(String to, String userName, String token) {
         String subject = "Verify your StandUpStrip email";
@@ -136,7 +151,7 @@ public class EmailService {
     }
 
     /**
-     * Send password reset link
+     * Send password reset link (async)
      */
     public void sendPasswordResetEmail(String to, String userName, String token) {
         String subject = "Reset your StandUpStrip password";
@@ -164,7 +179,7 @@ public class EmailService {
     }
 
     /**
-     * Send team invitation email
+     * Send team invitation email (async)
      */
     public void sendTeamInvitationEmail(String to, String teamName, String inviteCode, String ownerName) {
         String subject = "You've been invited to join " + teamName + " on StandUpStrip";
@@ -192,7 +207,7 @@ public class EmailService {
     }
 
     /**
-     * Send blocker alert email to team owner
+     * Send blocker alert email to team owner (async)
      */
     public void sendBlockerAlert(String ownerEmail, String userName, String teamName, String blockerText) {
         String subject = "🚨 Blocker Alert: " + userName + " in " + teamName;
