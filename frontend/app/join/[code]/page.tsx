@@ -22,8 +22,10 @@ export default function JoinTeamByCodePage() {
     const [teamPreview, setTeamPreview] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
     const [joining, setJoining] = useState(false);
+    const [accepting, setAccepting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isPendingInvitation, setIsPendingInvitation] = useState(false);
 
     // Auto-lookup team on page load
     useEffect(() => {
@@ -52,6 +54,7 @@ export default function JoinTeamByCodePage() {
         if (!teamPreview) return;
         setJoining(true);
         setError(null);
+        setIsPendingInvitation(false);
         try {
             await ApiClient.post(ENDPOINTS.TEAMS.JOIN_BY_CODE(code), {});
             setSuccess(`Successfully joined ${teamPreview.name}!`);
@@ -61,10 +64,34 @@ export default function JoinTeamByCodePage() {
             }, 1500);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Failed to join team";
+            // Check if this is a pending invitation error
+            if (message.toLowerCase().includes("pending invitation")) {
+                setIsPendingInvitation(true);
+            }
             setError(message);
             toast.error(message);
         } finally {
             setJoining(false);
+        }
+    };
+
+    const handleAcceptInvitation = async () => {
+        if (!teamPreview) return;
+        setAccepting(true);
+        setError(null);
+        try {
+            await ApiClient.post(ENDPOINTS.TEAMS.ACCEPT_INVITATION(teamPreview.id), {});
+            setSuccess(`Successfully joined ${teamPreview.name}!`);
+            toast.success(`Invitation accepted! Welcome to ${teamPreview.name}!`);
+            setTimeout(() => {
+                router.push(`/teams/${teamPreview.id}`);
+            }, 1500);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to accept invitation";
+            setError(message);
+            toast.error(message);
+        } finally {
+            setAccepting(false);
         }
     };
 
@@ -139,8 +166,29 @@ export default function JoinTeamByCodePage() {
                     ) : error ? (
                         <div className="text-center space-y-4 animate-in fade-in-0 duration-300">
                             <div className="text-sm text-destructive bg-destructive/10 p-4 rounded-md">
-                                {error}
+                                {isPendingInvitation
+                                    ? "You have a pending invitation to this team."
+                                    : error}
                             </div>
+                            {isPendingInvitation && teamPreview ? (
+                                <Button
+                                    className="w-full"
+                                    onClick={handleAcceptInvitation}
+                                    disabled={accepting}
+                                >
+                                    {accepting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Accepting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="mr-2 h-4 w-4" />
+                                            Accept Invitation
+                                        </>
+                                    )}
+                                </Button>
+                            ) : null}
                             <Link href="/join">
                                 <Button variant="outline" className="w-full">
                                     Try a Different Code

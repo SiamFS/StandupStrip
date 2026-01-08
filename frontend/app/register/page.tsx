@@ -48,7 +48,7 @@ export default function RegisterPage() {
                 const { confirmPassword, ...data } = values;
                 await register(data);
                 setIsSuccess(true);
-                toast.success("Account created! Please check your email.");
+                // Toast is shown on login page after redirect
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : "Failed to register";
                 setError(message);

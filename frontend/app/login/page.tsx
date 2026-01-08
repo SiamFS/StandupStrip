@@ -35,7 +35,7 @@ function LoginForm() {
     useEffect(() => {
         if (searchParams.get("registered") === "true" && !hasShownToast.current) {
             hasShownToast.current = true;
-            toast.success("Registration successful! Please login with your credentials.");
+            toast.success("Account created! Check your email to verify your account, then login.");
         }
     }, [searchParams]);
 

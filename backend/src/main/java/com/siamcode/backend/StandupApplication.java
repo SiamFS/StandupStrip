@@ -42,8 +42,8 @@ public class StandupApplication {
             copyEnvToProperty("GEMINI_API_KEY");
             copyEnvToProperty("GEMINI_API_URL");
             copyEnvToProperty("GEMINI_MODEL");
-            copyEnvToProperty("MAIL_USERNAME");
-            copyEnvToProperty("MAIL_PASSWORD");
+            copyEnvToProperty("RESEND_API_KEY");
+            copyEnvToProperty("RESEND_FROM_EMAIL");
             copyEnvToProperty("FRONTEND_URL");
 
             System.out.println("==> Environment configured for cloud deployment\n");
@@ -90,10 +90,9 @@ public class StandupApplication {
             }
 
             // Debug output for email configuration
-            String mailUser = envVars.get("MAIL_USERNAME");
-            String mailPass = envVars.get("MAIL_PASSWORD");
-            System.out.println("    Email: " + (mailUser != null ? mailUser : "NOT SET"));
-            System.out.println("    Password length: " + (mailPass != null ? mailPass.length() : 0) + " chars");
+            String resendKey = envVars.get("RESEND_API_KEY");
+            System.out.println(
+                    "    Resend API: " + (resendKey != null && !resendKey.isEmpty() ? "CONFIGURED" : "NOT SET"));
 
             System.out.println("==> Environment variables loaded successfully\n");
 
