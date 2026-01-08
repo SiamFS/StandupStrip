@@ -64,10 +64,10 @@ public class StandupSummaryService {
             throw new UnauthorizedException("You are not a member of this team");
         }
 
-        StandupSummary summary = standupSummaryRepository.findByTeamIdAndDate(teamId, date)
-                .orElseThrow(() -> new ResourceNotFoundException("Summary not found for this team and date"));
-
-        return entityMapper.toStandupSummaryResponse(summary);
+        // Return null if no summary exists (instead of throwing 404)
+        return standupSummaryRepository.findByTeamIdAndDate(teamId, date)
+                .map(entityMapper::toStandupSummaryResponse)
+                .orElse(null);
     }
 
     public List<StandupSummaryResponse> getSummariesByDateRange(Long teamId, LocalDate startDate, LocalDate endDate,

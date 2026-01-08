@@ -129,9 +129,9 @@ export default function Layout({ children }: LayoutProps) {
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 flex-col bg-card border-r">
                 <div className="h-16 flex items-center px-6 border-b">
-                    <span className="text-xl font-bold">
+                    <Link href="/dashboard" className="text-xl font-bold hover:text-primary transition-colors">
                         StandUpStrip
-                    </span>
+                    </Link>
                 </div>
                 <div className="flex-1 p-4 overflow-y-auto">
                     <SidebarContent />
@@ -152,7 +152,9 @@ export default function Layout({ children }: LayoutProps) {
                         <SheetContent side="left" className="w-64 p-0">
                             <SheetHeader className="h-16 flex items-center justify-start px-6 border-b">
                                 <SheetTitle className="text-xl font-bold">
-                                    StandUpStrip
+                                    <Link href="/dashboard" onClick={() => setSheetOpen(false)} className="hover:text-primary transition-colors">
+                                        StandUpStrip
+                                    </Link>
                                 </SheetTitle>
                             </SheetHeader>
                             <div className="p-4 h-[calc(100%-4rem)]">
@@ -160,7 +162,7 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         </SheetContent>
                     </Sheet>
-                    <span className="font-semibold">StandUpStrip</span>
+                    <Link href="/dashboard" className="font-semibold hover:text-primary transition-colors">StandUpStrip</Link>
                 </header>
 
                 <div className="flex-1 p-4 md:p-6 lg:p-10 w-full min-w-0 overflow-x-hidden">
