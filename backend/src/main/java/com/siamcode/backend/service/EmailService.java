@@ -30,9 +30,13 @@ public class EmailService {
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
-    // Dedicated thread pool for email sending - won't block HTTP threads
-    private final Executor emailExecutor = Executors.newFixedThreadPool(2);
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    // Auto-scaling thread pool for email sending - won't block HTTP threads
+    private final Executor emailExecutor = Executors.newCachedThreadPool();
+
+    // HTTP client with connection timeout to prevent hanging
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(30))
+            .build();
 
     @jakarta.annotation.PostConstruct
     public void init() {
