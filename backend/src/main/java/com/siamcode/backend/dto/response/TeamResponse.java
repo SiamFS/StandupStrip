@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class TeamResponse {
     private Long id;
     private String name;
+    private String description;
     private Long ownerUserId;
     private LocalDateTime createdAt;
     private String inviteCode;

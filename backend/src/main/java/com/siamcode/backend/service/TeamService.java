@@ -37,6 +37,7 @@ public class TeamService {
     public TeamResponse createTeam(CreateTeamRequest request, Long ownerUserId) {
         Team team = new Team();
         team.setName(request.getName());
+        team.setDescription(request.getDescription());
         team.setOwnerUserId(ownerUserId);
         team.setDeleted(false);
 
@@ -96,6 +97,7 @@ public class TeamService {
         }
 
         team.setName(request.getName());
+        team.setDescription(request.getDescription());
         Team updatedTeam = teamRepository.save(team);
         return entityMapper.toTeamResponse(updatedTeam);
     }

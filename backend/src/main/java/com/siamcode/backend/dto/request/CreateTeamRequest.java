@@ -13,4 +13,7 @@ public class CreateTeamRequest {
     @NotBlank(message = "Team name is required")
     @Size(min = 2, max = 255, message = "Team name must be between 2 and 255 characters")
     private String name;
+
+    @Size(max = 1000, message = "Description must be less than 1000 characters")
+    private String description;
 }

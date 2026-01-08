@@ -271,6 +271,11 @@ export default function TeamDetailsPage() {
                         <p className="text-sm text-muted-foreground">
                             Created on {new Date(team.createdAt).toLocaleDateString()}
                         </p>
+                        {team.description && (
+                            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+                                {team.description}
+                            </p>
+                        )}
                         {isOwner && team.inviteCode && (
                             <div className="flex flex-wrap items-center gap-2 mt-2">
                                 <span className="text-xs sm:text-sm text-muted-foreground">Invite Code:</span>

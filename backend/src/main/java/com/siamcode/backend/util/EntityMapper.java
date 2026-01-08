@@ -24,6 +24,7 @@ public class EntityMapper {
         return new TeamResponse(
                 team.getId(),
                 team.getName(),
+                team.getDescription(),
                 team.getOwnerUserId(),
                 team.getCreatedAt(),
                 team.getInviteCode());
