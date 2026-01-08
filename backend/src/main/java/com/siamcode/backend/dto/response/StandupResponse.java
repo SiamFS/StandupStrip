@@ -19,4 +19,5 @@ public class StandupResponse {
     private String todayText;
     private String blockersText;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

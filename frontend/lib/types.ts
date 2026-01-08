@@ -23,6 +23,7 @@ export interface StandupResponse {
     todayText: string;
     blockersText: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export interface StandupSummaryResponse {

@@ -41,7 +41,8 @@ public class EntityMapper {
                 standup.getYesterdayText(),
                 standup.getTodayText(),
                 standup.getBlockersText(),
-                standup.getCreatedAt());
+                standup.getCreatedAt(),
+                standup.getUpdatedAt());
     }
 
     public StandupSummaryResponse toStandupSummaryResponse(StandupSummary summary) {

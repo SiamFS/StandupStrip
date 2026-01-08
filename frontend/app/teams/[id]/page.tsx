@@ -437,10 +437,14 @@ export default function TeamDetailsPage() {
                             {/* Summary button on separate row for mobile */}
                             <div className="flex justify-start sm:justify-end">
                                 {(() => {
-                                    // Check if summary is stale (any standup was created after the summary)
-                                    const isSummaryStale = summary && standups.some(s => new Date(s.createdAt) > new Date(summary.createdAt));
-                                    const needsNewSummary = !summary || isSummaryStale;
+                                    // Check if summary is stale (any standup was created or updated after the summary)
+                                    const isSummaryStale = summary && standups.some(s => {
+                                        const standupTime = s.updatedAt ? new Date(s.updatedAt) : new Date(s.createdAt);
+                                        return standupTime > new Date(summary.createdAt);
+                                    });
                                     const hasEnoughStandups = standups.length >= 2;
+                                    // If not enough standups, treat as "needs new summary" so we show the (disabled) Generate button
+                                    const needsNewSummary = !summary || isSummaryStale || !hasEnoughStandups;
                                     const isDisabled = summaryLoading || !hasEnoughStandups;
 
                                     if (needsNewSummary) {
