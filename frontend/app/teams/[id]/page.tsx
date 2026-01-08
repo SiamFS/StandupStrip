@@ -426,14 +426,7 @@ export default function TeamDetailsPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className={cn(
-                                                    "flex-1 xs:flex-none text-xs sm:text-sm transition-all duration-200",
-                                                    (() => {
-                                                        const yesterday = new Date();
-                                                        yesterday.setDate(yesterday.getDate() - 1);
-                                                        return date === getLocalDateFormat(yesterday) && 'bg-primary/10';
-                                                    })()
-                                                )}
+                                                className="flex-1 xs:flex-none text-xs sm:text-sm"
                                                 onClick={() => {
                                                     const yesterday = new Date();
                                                     yesterday.setDate(yesterday.getDate() - 1);

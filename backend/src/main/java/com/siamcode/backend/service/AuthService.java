@@ -92,7 +92,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional
     public void initiatePasswordReset(String email) {
         User user = userService.findByEmail(email);
 
