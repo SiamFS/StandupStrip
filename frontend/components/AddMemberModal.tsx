@@ -45,7 +45,7 @@ export function AddMemberModal({ isOpen, onClose, onSuccess, teamId }: AddMember
                     role: "MEMBER"
                 });
                 resetForm();
-                toast.success("Member added successfully!");
+                toast.success("Invitation sent successfully! An email has been sent to the invitee.");
                 onSuccess();
                 onClose();
             } catch (err: unknown) {

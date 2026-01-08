@@ -25,6 +25,9 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
+    @Value("${frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
     // Dedicated thread pool for email sending - won't block HTTP threads
     private final Executor emailExecutor = Executors.newFixedThreadPool(2);
 
@@ -132,7 +135,7 @@ public class EmailService {
      */
     public void sendVerificationEmail(String to, String userName, String token) {
         String subject = "Verify your StandUpStrip email";
-        String verificationUrl = "http://localhost:3000/verify?token=" + token;
+        String verificationUrl = frontendUrl + "/verify?token=" + token;
 
         String htmlContent = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -161,7 +164,7 @@ public class EmailService {
      */
     public void sendPasswordResetEmail(String to, String userName, String token) {
         String subject = "Reset your StandUpStrip password";
-        String resetUrl = "http://localhost:3000/reset-password?token=" + token;
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
 
         String htmlContent = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -189,7 +192,7 @@ public class EmailService {
      */
     public void sendTeamInvitationEmail(String to, String teamName, String inviteCode, String ownerName) {
         String subject = "You've been invited to join " + teamName + " on StandUpStrip";
-        String joinUrl = "http://localhost:3000/join/" + inviteCode;
+        String joinUrl = frontendUrl + "/join/" + inviteCode;
 
         String htmlContent = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -230,12 +233,12 @@ public class EmailService {
                         </div>
                         <p>You can view more details on the team dashboard.</p>
                         <div style="text-align: center; margin: 20px 0;">
-                            <a href="http://localhost:3000/teams" style="color: #ef4444; font-weight: bold;">Go to Dashboard &rarr;</a>
+                            <a href="%s/teams" style="color: #ef4444; font-weight: bold;">Go to Dashboard &rarr;</a>
                         </div>
                     </div>
                 </div>
                 """
-                .formatted(userName, teamName, blockerText);
+                .formatted(userName, teamName, blockerText, frontendUrl);
 
         sendHtmlEmail(ownerEmail, subject, htmlContent);
     }
