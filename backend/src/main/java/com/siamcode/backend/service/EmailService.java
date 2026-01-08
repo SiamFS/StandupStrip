@@ -1,108 +1,125 @@
 package com.siamcode.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Email service using Resend API (HTTP-based, works on Render free tier)
+ * Fallback to Gmail SMTP if Resend is not configured
+ */
 @Service
 @Slf4j
 public class EmailService {
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
 
-    @Value("${spring.mail.username:}")
-    private String fromEmail;
+    @Value("${resend.from.email:onboarding@resend.dev}")
+    private String resendFromEmail;
 
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     // Dedicated thread pool for email sending - won't block HTTP threads
     private final Executor emailExecutor = Executors.newFixedThreadPool(2);
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @jakarta.annotation.PostConstruct
     public void init() {
         log.info("==> Email Service Configuration:");
-        log.info("    mailSender: {}", mailSender != null ? "CONFIGURED" : "NOT CONFIGURED");
-        log.info("    fromEmail: {}", fromEmail.isEmpty() ? "NOT SET" : fromEmail);
+        log.info("    Provider: {}", isConfigured() ? "RESEND (HTTP API)" : "DISABLED");
+        log.info("    API Key: {}", resendApiKey.isEmpty() ? "NOT SET"
+                : "***" + resendApiKey.substring(Math.max(0, resendApiKey.length() - 4)));
+        log.info("    From Email: {}", resendFromEmail);
+        log.info("    Frontend URL: {}", frontendUrl);
         log.info("    Status: {}", isConfigured() ? "READY" : "DISABLED");
-        log.info("    Async: ENABLED (using dedicated thread pool)");
     }
 
     /**
-     * Send a simple text email (synchronous - use for testing only)
+     * Check if email service is configured
      */
-    public void sendSimpleEmail(String to, String subject, String body) {
-        if (mailSender == null || fromEmail.isEmpty()) {
-            log.warn("Email service not configured. Skipping email to: {}", to);
-            return;
-        }
-
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-
-            mailSender.send(message);
-            log.info("Simple email sent successfully to: {}", to);
-        } catch (Exception e) {
-            log.error("Failed to send simple email to {}: {}", to, e.getMessage());
-            throw new RuntimeException("Failed to send email", e);
-        }
+    public boolean isConfigured() {
+        return !resendApiKey.isEmpty();
     }
 
     /**
-     * Internal method to actually send the HTML email (runs in background thread)
-     */
-    private void doSendHtmlEmail(String to, String subject, String htmlContent) {
-        if (mailSender == null || fromEmail.isEmpty()) {
-            log.warn("Email service not configured. Skipping email to: {}", to);
-            log.warn("  mailSender is null: {}", mailSender == null);
-            log.warn("  fromEmail is empty: {}", fromEmail.isEmpty());
-            return;
-        }
-
-        try {
-            log.info("Sending HTML email to: {} with subject: {}", to, subject);
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true = isHtml
-
-            mailSender.send(mimeMessage);
-            log.info("HTML email sent successfully to: {}", to);
-        } catch (Exception e) {
-            log.error("Failed to send HTML email to {}: {}", to, e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Send an HTML email ASYNCHRONOUSLY using dedicated thread pool.
-     * Returns immediately - email sends in background.
+     * Send email using Resend API (async)
      */
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
-        log.info("Queuing HTML email to: {} (async)", to);
-        CompletableFuture.runAsync(() -> doSendHtmlEmail(to, subject, htmlContent), emailExecutor)
+        if (!isConfigured()) {
+            log.warn("Email service not configured. Skipping email to: {}", to);
+            return;
+        }
+
+        log.info("Queuing email to: {} via Resend (async)", to);
+        CompletableFuture.runAsync(() -> doSendEmail(to, subject, htmlContent), emailExecutor)
                 .exceptionally(ex -> {
                     log.error("Async email failed to {}: {}", to, ex.getMessage(), ex);
                     return null;
                 });
+    }
+
+    /**
+     * Actually send the email via Resend API
+     */
+    private void doSendEmail(String to, String subject, String htmlContent) {
+        try {
+            String jsonBody = """
+                    {
+                        "from": "%s",
+                        "to": ["%s"],
+                        "subject": "%s",
+                        "html": %s
+                    }
+                    """.formatted(
+                    resendFromEmail,
+                    to,
+                    subject.replace("\"", "\\\""),
+                    escapeJson(htmlContent));
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Email sent successfully to: {} via Resend", to);
+            } else {
+                log.error("Failed to send email to {}: Status={}, Response={}", to, response.statusCode(),
+                        response.body());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Escape string for JSON
+     */
+    private String escapeJson(String text) {
+        if (text == null)
+            return "null";
+        return "\"" + text
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                + "\"";
     }
 
     /**
@@ -219,7 +236,8 @@ public class EmailService {
      * Send blocker alert email to team owner (async)
      */
     public void sendBlockerAlert(String ownerEmail, String userName, String teamName, String blockerText) {
-        String subject = "🚨 Blocker Alert: " + userName + " in " + teamName;
+        String subject = "Blocker Alert: " + userName + " in " + teamName;
+        String dashboardUrl = frontendUrl + "/teams";
 
         String htmlContent = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fee2e2; border-radius: 12px; overflow: hidden;">
@@ -233,20 +251,13 @@ public class EmailService {
                         </div>
                         <p>You can view more details on the team dashboard.</p>
                         <div style="text-align: center; margin: 20px 0;">
-                            <a href="%s/teams" style="color: #ef4444; font-weight: bold;">Go to Dashboard &rarr;</a>
+                            <a href="%s" style="color: #ef4444; font-weight: bold;">Go to Dashboard</a>
                         </div>
                     </div>
                 </div>
                 """
-                .formatted(userName, teamName, blockerText, frontendUrl);
+                .formatted(userName, teamName, blockerText, dashboardUrl);
 
         sendHtmlEmail(ownerEmail, subject, htmlContent);
-    }
-
-    /**
-     * Check if email service is configured
-     */
-    public boolean isConfigured() {
-        return mailSender != null && !fromEmail.isEmpty();
     }
 }
