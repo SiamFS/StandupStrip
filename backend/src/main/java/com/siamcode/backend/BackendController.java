@@ -58,4 +58,37 @@ public class BackendController {
         response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return response;
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.siamcode.backend.service.EmailService emailService;
+
+    @GetMapping("/test-email")
+    public Map<String, Object> testEmail(@org.springframework.web.bind.annotation.RequestParam String to) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("to", to);
+        response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        try {
+            response.put("configured", emailService.isConfigured());
+
+            if (!emailService.isConfigured()) {
+                response.put("status", "ERROR");
+                response.put("message", "Email service not configured");
+                return response;
+            }
+
+            // Send a test email synchronously to see the error
+            emailService.sendHtmlEmail(to, "Test Email from StandUpStrip",
+                    "<h1>Test Email</h1><p>This is a test email from StandUpStrip to verify email sending works.</p>");
+
+            response.put("status", "QUEUED");
+            response.put("message", "Email queued for sending. Check server logs for result.");
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", e.getMessage());
+            response.put("error", e.getClass().getName());
+        }
+
+        return response;
+    }
 }
