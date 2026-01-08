@@ -67,10 +67,13 @@ public class EmailService {
     private void doSendHtmlEmail(String to, String subject, String htmlContent) {
         if (mailSender == null || fromEmail.isEmpty()) {
             log.warn("Email service not configured. Skipping email to: {}", to);
+            log.warn("  mailSender is null: {}", mailSender == null);
+            log.warn("  fromEmail is empty: {}", fromEmail.isEmpty());
             return;
         }
 
         try {
+            log.info("Sending HTML email to: {} with subject: {}", to, subject);
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -81,9 +84,8 @@ public class EmailService {
 
             mailSender.send(mimeMessage);
             log.info("HTML email sent successfully to: {}", to);
-        } catch (MessagingException e) {
-            log.error("Failed to send HTML email to {}: {}", to, e.getMessage());
-            // Don't throw - just log the error
+        } catch (Exception e) {
+            log.error("Failed to send HTML email to {}: {}", to, e.getMessage(), e);
         }
     }
 
@@ -93,7 +95,11 @@ public class EmailService {
      */
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
         log.info("Queuing HTML email to: {} (async)", to);
-        CompletableFuture.runAsync(() -> doSendHtmlEmail(to, subject, htmlContent), emailExecutor);
+        CompletableFuture.runAsync(() -> doSendHtmlEmail(to, subject, htmlContent), emailExecutor)
+                .exceptionally(ex -> {
+                    log.error("Async email failed to {}: {}", to, ex.getMessage(), ex);
+                    return null;
+                });
     }
 
     /**
