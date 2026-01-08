@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class StandupService {
             throw new UnauthorizedException("You are not a member of this team");
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Dhaka"));
 
         // Check if standup already exists for today
         if (standupRepository.findByTeamIdAndUserIdAndDate(teamId, userId, today).isPresent()) {
@@ -85,7 +86,7 @@ public class StandupService {
         }
 
         // Only allow updates on the same day
-        if (!standup.getDate().equals(LocalDate.now())) {
+        if (!standup.getDate().equals(LocalDate.now(ZoneId.of("Asia/Dhaka")))) {
             throw new BadRequestException("Can only update today's standup");
         }
 
@@ -172,7 +173,7 @@ public class StandupService {
             throw new UnauthorizedException("You are not a member of this team");
         }
 
-        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+        LocalDate oneYearAgo = LocalDate.now(ZoneId.of("Asia/Dhaka")).minusYears(1);
         List<Object[]> dailyCounts = standupRepository.countDailyStandupsByTeamId(teamId, oneYearAgo);
 
         return dailyCounts.stream()
