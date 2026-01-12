@@ -1,6 +1,6 @@
 # AI Development Log
 
-This log documents the step-by-step process of building the StandUpStrip application using AI assistance, compiled from the project's conversation history and verified against the current codebase.
+This log documents the step-by-step process of building the StandUpStrip application using Google Antigravity and AI assistance, compiled from the project's conversation history and verified against the current codebase
 
 *   **Project Exploration**
     *   Used AI to generate a full project map and understand the existing codebase structure.

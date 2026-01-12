@@ -4,6 +4,10 @@
 
 **StandUpStrip** is a lightweight async standup tool that lets remote teams submit daily updates and get AI-powered summaries—replacing fragmented Slack threads and eliminating daily standup meetings.
 
+[![Built with BMad](https://img.shields.io/badge/Agentic_Coding-BMad_Method-blueviolet?style=for-the-badge)](docs/bmad/README.md)
+
+> This project was architected and built using the **BMad Method**, a structured agentic coding framework. The complete documentation lifecycle—from brainstorming to QA verification—is available in the **[Project Documentation Suite](docs/bmad/README.md)**.
+
 ## ✨ Features
 
 - **User Authentication** — Email/password with JWT, email verification, and password reset
@@ -180,7 +184,9 @@ Trainee_Siam/
 │   ├── contexts/          # React contexts
 │   └── lib/               # Utilities
 └── docs/                  # Documentation
-    ├── PRD.md            # Product Requirements
+    ├── bmad/             # BMad Project Artifacts (PRD, Architecture, UX Specs)
+    ├── stories/          # Implemented User Stories
+    ├── PRD.md            # Original Product Requirements
     └── er_diagram.puml   # Database ER diagram
 ```
 
