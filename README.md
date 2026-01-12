@@ -16,12 +16,6 @@
 - **AI Summaries** — One-click daily & weekly AI-generated summaries (Google Gemini)
 - **Participation Heatmap** — GitHub-style activity visualization
 - **Secure Team Deletion** — Password verification for destructive actions
-### 🎬 Complete Workflow Demo
-
-[![Watch the Demo](https://img.shields.io/badge/▶️_Watch_Demo-Complete_Workflow-red?style=for-the-badge&logo=googledrive)](https://drive.google.com/drive/folders/1BUalizSjrSjn9EvcnxDgb7CS1eRXb3sD?usp=sharing)
-
-> **📺 [Click here to watch the complete workflow video](https://drive.google.com/drive/folders/1BUalizSjrSjn9EvcnxDgb7CS1eRXb3sD?usp=sharing)**
-
 
 ## � Screenshots
 
@@ -191,6 +185,12 @@ Trainee_Siam/
 ```
 
 ---
+
+### 🎬 Complete Workflow Demo
+
+[![Watch the Demo](https://img.shields.io/badge/▶️_Watch_Demo-Complete_Workflow-red?style=for-the-badge&logo=googledrive)](https://drive.google.com/drive/folders/1BUalizSjrSjn9EvcnxDgb7CS1eRXb3sD?usp=sharing)
+
+> **📺 [Click here to watch the complete workflow video](https://drive.google.com/drive/folders/1BUalizSjrSjn9EvcnxDgb7CS1eRXb3sD?usp=sharing)**
 
 ## 🤖 AI Log
 
